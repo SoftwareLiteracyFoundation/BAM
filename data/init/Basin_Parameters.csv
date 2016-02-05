@@ -1,0 +1,55 @@
+Basin, Name,         Rain Station,  Salinity Station
+5,   Barnes Sound,             LB,  MD
+6,   Manatee Bay,              HC,  MB
+7,   Long Sound,               LS,  LS
+8,   Little Blackwater Sound,  LB,  LB
+9,   Blackwater Sound,         BS,  BS
+10,  Tarpon,                   BS,  None
+11,  Little Buttonwood Sound,  BS,  None
+12,  Nest Keys,                BN,  None
+13,  Joe Bay,                  TC,  TC
+14,  Little Madeira Bay,       LM,  LM
+15,  Black Betsy Keys,         LM,  LM
+16,  Upper Cross Bank,         BN,  None
+17,  Rock Harbor,              BN,  None
+18,  Buttonwood Sound,         BN,  None
+19,  Jimmie Key,               BA,  None
+20,  Cotton Key,               BA,  None
+21,  Captain Key,              BA,  None
+22,  Russell Key,              BA,  None
+23,  Crocodile Dragover,       WB,  None
+24,  Madeira Bay,              LM,  None
+25,  Terrapin Bay,             GB,  None
+26,  End Key,                  WB,  None
+27,  Calusa Keys,              WB,  None
+28,  Spy Key,                  BA,  None
+29,  Porpoise Lake,            BA,  BA
+30,  Lignumvitae,              PK,  PK
+31,  Long Key,                 PK,  None
+32,  Twin Keys,                LR,  LR
+33,  Corrine Key,              WB,  None
+34,  Whipray,                  WB,  WB
+35,  North Whipray,            WB,  None
+36,  Rankin Bight,             GB,  None
+37,  Rankin Lake,              GB,  GB
+38,  Rabbit Key,               LR,  LR
+39,  Johnson Key,              JK,  JK
+40,  Catfish Key,              MK,  MK
+41,  Snake Bight,              BK,  BK
+42,  Conchie Channel,          MK,  None
+43,  Ninemile Bank,            JK,  None
+44,  Dildo Key Bank,           JK,  None
+45,  Tavernier Creek,          BN,  None
+46,  Butternut Key,            BN,  BN
+47,  Duck Key,                 DK,  DK
+48,  Manatee Keys,             BN,  None
+49,  Swash Keys,               BN,  BN
+50,  Deer Key,                 TC,  TC
+51,  Eagle Key,                LM,  None
+52,  Steamboat Channel,        BA,  None
+53,  Arsenicker Keys,          PK,  None
+54,  Sid Key,                  LR,  None
+55,  Pelican Keys,             BK,  None
+56,  Blue Bank,                JK,  None
+57,  First National Bank,      JK,  None
+58,  Sandy Key,                MK,  None
