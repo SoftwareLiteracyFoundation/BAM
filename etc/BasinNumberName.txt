@@ -1,0 +1,77 @@
+Basin, Name
+5,  Barnes Sound
+6,  Manatee Bay
+7,  Long Sound
+8,  Little Blackwater Sound
+9,  Blackwater Sound
+10, Tarpon
+11, Little Buttonwood Sound
+12, Nest Keys
+13, Joe Bay
+14, Little Madeira Bay
+15, Black Betsy Keys
+16, Upper Cross Bank
+17, Rock Harbor
+18, Buttonwood Sound
+19, Jimmie Key
+20, Cotton Key
+21, Captain Key
+22, Russell Key
+23, Crocodile Dragover
+24, Madeira Bay
+25, Terrapin Bay
+26, End Key
+27, Calusa Keys
+28, Spy Key
+29, Porpoise Lake
+30, Lignumvitae
+31, Long Key
+32, Twin Keys
+33, Corrine Key
+34, Whipray
+35, North Whipray
+36, Rankin Bight
+37, Rankin Lake
+38, Rabbit Key
+39, Johnson Key
+40, Catfish Key
+41, Snake Bight
+42, Conchie Channel
+43, Ninemile Bank
+44, Dildo Key Bank
+45, Tavernier Creek
+46, Butternut Key
+47, Duck Key
+48, Manatee Keys
+49, Swash Keys
+50, Deer Key
+51, Eagle Key
+52, Steamboat Channel
+53, Arsenicker Keys
+54, Sid Key
+55, Pelican Keys
+56, Blue Bank
+57, First National Bank
+58, Sandy Key
+59, Gulf Tide 1
+60, Gulf Tide 2
+61, Gulf Tide 3
+62, Gulf Tide 4
+63, Ocean Tide 5
+64, Ocean Tide 6
+65, Ocean Tide 7
+66, Ocean Tide 8
+67, Ocean Tide 9
+68, Card Sound Tide 10
+70, EVER to Rankin Lake
+71, EVER to Rankin Bight
+72, EVER to North Whipray
+73, EVER to Terrapin Bay
+74, EVER to Madeira Bay
+75, EVER to Little Madeira Bay
+76, EVER to Eagle Key
+77, EVER to Joe Bay
+78, EVER to Deer Key
+79, EVER to Long Sound
+80, EVER to Manatee Bay
+81, EVER to Conchie Channel

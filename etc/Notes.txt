@@ -1,0 +1,456 @@
+
+----------------------------------------------------------------
+MSL offset 2008 - 2015 : -14.8 cm NAVD 
+
+----------------------------------------------------------------
+CompareRunoff.R  
+Scale factors to match fathom monthly runoff to BAM 6 minute
+See data/init/Basin_Runoff_Bounary.csv for basin : shoal mapping
+
+           bam.files.1.13.   s.avg
+---------------------------------
+1        Barnes Sound.csv  64.815  -> W 500  n 0.001
+2         Manatee Bay.csv   7.870  ->        n 0.02
+3          Long Sound.csv  11.111  ->        n 0.01
+4            Deer Key.csv  97.222  -> W 500  n 0.001
+5             Joe Bay.csv  11.111  ->        n 0.01
+6           Eagle Key.csv 120.370  -> W 500  n 0.001
+7  Little Madeira Bay.csv   7.407  ->        n 0.02
+8         Madeira Bay.csv  26.852  -> W 3000 n 0.005
+9        Terrapin Bay.csv   5.093  ->        n 0.02
+10      North Whipray.csv  25.463  -> W 3000 n 0.005
+11       Rankin Bight.csv  15.278  -> W 5000 n 0.008
+12        Rankin Lake.csv  24.537  -> W 3000 n 0.005
+13        Snake Bight.csv  46.296  -> W 500  n 0.001
+
+----------------------------------------------------------------
+
+EDEN water surface 'stations' with range to Basin
+Stations that are used:
+'S22', 'S21', 'S20', 'S19', 'S18', 'S17', 'S16', 'S15'
+
+EDEN, R_m,  Basin
+S1,  2500,  Manatee Bay
+S22, 2080,  Manatee Bay
+S1,  1780,  Barnes Sound
+S22, 1450,  Barnes Sound
+S1,  4070,  Long Sound
+S22, 3760,  Long Sound
+S2,  6760,  Deer Key
+S21, 6180,  Deer Key
+S3,  4220,  Joe Bay
+S20, 3230,  Joe Bay
+S4,  8790,  Eagle Key
+S19, 6910,  Eagle Key
+S5,  9490,  Little Madeira Bay
+S18, 5360,  Little Madeira Bay
+S6,  12390, Madeira Bay
+S17, 6330,  Madeira Bay
+S6,  13150, Terrapin Bay
+S17, 7240,  Terrapin Bay
+S7,  13180, North Whipray
+S16, 9660,  North Whipray
+S7,  13110, Rankin Bight
+S16, 9480,  Rankin Bight
+S7,  11770, Rankin Lake
+S16, 8900,  Rankin Lake
+S8,  12140, Snake Bight
+S15, 10310, Snake Bight
+
+
+----------------------------------------------------------------
+
+    Currently, multiprocess is used to parallelize reading and 
+    interpolation of tidal boundary data. The code was reorganzed 
+    to remove class and graphics objects from the Shoal class, which
+    required making the Basins and Shoals maps global, and was tested
+    with multiprocess and multiprocessing parallelizing the shoal
+    loop in hydro.MassTransport. The result was significantly slower
+    run times and exhaustion of memory resources since there are 
+    410 shoals. Process-based parallelism with pools is ill-posed,
+
+Morpheus> ./fbm.py -D -E "2010-01-04 00:00"
+Simulation complete. Elapsed time: 24 (s)  : Base
+Simulation complete. Elapsed time: 27 (s)  : Created MassTransportFunction
+
+----------------------------------------------------------------
+Rain data from NWS
+ftp://ftp.ncdc.noaa.gov/pub/data/normals/1981-2010/station-inventories/allstations.txt
+
+Note that these have missing dates: will require work to address
+
+GHCN Daily ID Latitude Longitude Elevation Station Name
+-------------------------------------------------------
+USC00083020   25.1422  -80.9144    0.9     FL FLAMINGO RS  Snake Bight
+USC00084320   24.9178  -80.6364    1.8     FL ISLAMORADA   Steamboat/Cotton
+USW00012896   24.7258  -81.0517    2.4     FL MARATHON AP
+USC00082441   24.7706  -80.9072    2.4     FL DUCK KEY     Long Key
+
+
+----------------------------------------------------------------
+Tide Boundaries
+----------------------------------------------------------------
+Region 1  Gulf  : Basin 59
+Conchie Channel : Shoal 23 
+
+Region 2  Gulf  : Basin 60
+Sandy Key       : Shoal 22, 370
+
+Region 3  Gulf  : Basin 61
+Ninemile Bank   : Shoal 45, 371
+
+Region 4  Gulf  : Basin 62
+Long Key        : Shoal 70
+
+Region 5  Ocean : Basin 63
+Long Key        : Shoal 64, 65, 66, 67, 68
+
+Region 6 Ocean  : Basin 64
+Long Key        : 61, 62, 63, 239
+Lignumvitae     : 237
+
+Region 7 Ocean    : Basin 65
+Steamboat Channel : Shoal 240
+Cotton Key        : Shoal 241, 242
+
+Region 8 Ocean    : Basin 66
+Tavanier Creek    : Shoal 271, 272, 273, 274
+Rock Harbor       : Shoal 288
+
+Region 9 Ocean    : Basin 67
+Buttonwood Sound  : Shoal 289, 290
+Tarpon            : Shoal 309
+Blackwater Sound  : Shoal 310
+Barnes Sound      : Shoal 365, 366
+
+Region 10 Card Sound  : Basin 68
+Barnes Sound          : Shoal 362, 363
+
+
+----------------------------------------------------------------
+XTide  http://www.flaterco.com/xtide/
+----------------------------------------------------------------
+To create a .csv file in 1 hour increments:
+tide -l "flamingo, fl" -b "1990-01-01 00:00" -e "1990-01-03 00:00" -mm -fc -o flamingo_tide.csv -um -s 01:00 
+
+-mm times as 2002-02-06  4:56 PM EST
+-mr will output time in Unix seconds instead of AM/PM.
+-fc .cvs output
+-um units meters
+-s  output interval for -mm or -mr modes
+
+Tidal prediction data : 1990 - 2020
+
+
+Boundary tide stations:
+------------------------------
+Flamingo, Florida Bay, Florida
+Cape Sable, East Cape, Florida
+Long Key, western end, Florida
+Lignumvitae Key, NE side, Florida Bay, Florida
+Snake Creek, Hwy. 1 bridge, Windley Key, Florida
+Tavernier Creek, Hwy. 1 bridge, Hawk Channel, Florida
+Point Charles, Key Largo, Florida
+Garden Cove, Key Largo, Florida
+Little Card Sound bridge, Florida
+
+Interior tide stations:
+-------------------------------
+Main Key, Barnes Sound, Florida
+Manatee Creek, Manatee Bay, Barnes Sound, Florida
+Shell Key, northwest side, Lignumvitae Basin, Florida
+Yacht Harbor, Cowpens Anchorage, Plantation Key, Florida
+East Key, southern end, Florida Bay, Florida
+Crane Keys, north side, Florida Bay, Florida
+
+
+----------------------------------------------------------------------
+
+Blue Bank 56
+ Area: 23.438 (km^2) Land Area: 0.018 (km^2)
+ Wet Area (km^2): 
+1ft: 0.14 
+2ft: 1.38 
+3ft: 1.61 
+4ft: 1.47 
+5ft: 3.03 
+6ft: 3.98 
+7ft: 7.16 
+8ft: 4.19 
+9ft: 0.22 
+10ft: 0.03
+ Volume: 0.0423 (km^3)
+
+> sum(0.14,1.38,1.61,1.47,3.03,3.98,7.16,4.19,0.22,0.03)
+[1] 23.21 (km^2)
+
+Blue Bank Shoals :		basin
+     37  Johnson Key		39
+     38  Rabbit Key		38
+     395 First National Bank	57
+     396 Ninemile Bank		43
+     397 Ninemile Bank		43
+     398 Ninemile Bank		43
+
+Shoal: 37  Johnson Key[39 (0.0 m)]  to  Blue Bank[56 (0.0 m)]
+Width: 1085.0 (m)  Manning: 0.1  Land Length: 0.0 (m)
+Wet Length (m): 
+1ft: 2607  
+3ft: 15  
+6ft: 15  
+7ft: 165  
+
+Shoal: 38  Rabbit Key[38 (0.0 m)]  to  Blue Bank[56 (0.0 m)]
+Width: 702.0 (m)  Manning: 0.1  Land Length: 0.0 (m)
+Wet Length (m): 
+1ft: 119  
+2ft: 2554  
+3ft: 1099  
+4ft: 564  
+5ft: 713  
+7ft: 30  
+8ft: 30  
+9ft: 30  
+10ft: 30 
+
+Shoal: 395  Blue Bank[56 (0.0 m)]  to  First National Bank[57 (0.0 m)]
+Width: 3403.0 (m)  Manning: 0.1  Land Length: 0.0 (m)
+Wet Length (m): 
+1ft: 903  
+
+Shoal: 396  Ninemile Bank[43 (0.0 m)]  to  Blue Bank[56 (0.0 m)]
+Width: 4103.0 (m)  Manning: 0.1  Land Length: 0.0 (m)
+Wet Length (m): 
+1ft: 31  
+2ft: 311  
+3ft: 280  
+4ft: 187  
+5ft: 249  
+6ft: 560  
+7ft: 2239  
+8ft: 933
+
+Shoal: 397  Ninemile Bank[43 (0.0 m)]  to  Blue Bank[56 (0.0 m)]
+Width: 300.0 (m)  Manning: 0.1  Land Length: 0.0 (m)
+Wet Length (m): 
+4ft: 240  
+5ft: 1198  
+6ft: 616  
+7ft: 1061  
+8ft: 308 
+
+Shoal: 398  Ninemile Bank[43 (0.0 m)]  to  Blue Bank[56 (0.0 m)]
+Width: 888.0 (m)  Manning: 0.1  Land Length: 0.0 (m)
+Wet Length (m): 
+1ft: 322  
+2ft: 497  
+3ft: 351  
+4ft: 615  
+5ft: 88  
+
+
+------------------------------------------------------------------
+Mass balance check:
+Fixed stage 1 m in Rabbit Key 0 m in Blue Bank at dt = 600 s
+------------------------------------------------------------------
+
+Blue Bank Shoals :		Q
+     37  Johnson Key		0
+     38  Rabbit Key		2374
+     395 First National Bank	0
+     396 Ninemile Bank		0
+     397 Ninemile Bank		0
+     398 Ninemile Bank		0
+
+Blue Bank.csv                                               *** Computed Check
+Time	 	  	Stage	Flow		Volume		V + Q * 600
+2000-01-01 00:00:00	0	1849.184	43386547.032	
+2000-01-01 00:10:00	0	2537.199	44908866.489	44908866.432
+2000-01-01 00:20:00	0	2373.488	46332959.082	46332959.289
+2000-01-01 00:30:00	0	2374.382	47757588.189	47757588.282
+2000-01-01 00:40:00	0	2374.377	49182214.497	49182214.389
+2000-01-01 00:50:00	0	2374.377	50606840.82	50606840.697
+2000-01-01 01:00:00	0	2374.377	52031467.142	52031467.02
+
+
+Shoal: 38  Rabbit Key[38 (1 m)]  to  Blue Bank[56 (0.0 m)]
+Width: 702.0 (m)  Manning: 0.1  Land Length: 0.0 (m)
+h_upstream: 1ft: 1.305 2ft: 1.61 3ft: 1.914 4ft: 2.219 5ft: 2.524 7ft: 3.134 8ft: 3.438 9ft: 3.743 10ft: 4.048 (m)
+h_downstream: 1ft: 0.305 2ft: 0.61 3ft: 0.914 4ft: 1.219 5ft: 1.524 7ft: 2.134 8ft: 2.438 9ft: 2.743 10ft: 3.048 (m)
+Velocities: 1ft: 0.325 2ft: 0.402 3ft: 0.472 4ft: 0.536 5ft: 0.597 7ft: 0.708 8ft: 0.76 9ft: 0.81 10ft: 0.858 (m/s)
+Q: 1ft: 11.786 2ft: 625.651 3ft: 473.916 4ft: 368.655 5ft: 648.275 7ft: 45.33 8ft: 55.612 9ft: 66.674 10ft: 78.48 (m^3/dt)  Q_total: 2374.4
+Wet Length: 1ft: 119  2ft: 2554  3ft: 1099  4ft: 564  5ft: 713  6ft: 0  7ft: 30  8ft: 30  9ft: 30  10ft: 30  (m)
+
+Shoal: 37  Johnson Key[39 (0.0 m)]  to  Blue Bank[56 (0.0 m)]
+Width: 1085.0 (m)  Manning: 0.1  Land Length: 0.0 (m)
+h_upstream: 1ft: 0.305 3ft: 0.914 6ft: 1.829 7ft: 2.134 (m)
+h_downstream: 1ft: 0.305 3ft: 0.914 6ft: 1.829 7ft: 2.134 (m)
+Velocities: 1ft: -0.0 3ft: -0.0 6ft: -0.0 7ft: -0.0 (m/s)
+Q: 1ft: -0.0 3ft: -0.0 6ft: -0.0 7ft: -0.0 (m^3/dt)  Q_total: 0.0
+Wet Length: 1ft: 2607  2ft: 0  3ft: 15  4ft: 0  5ft: 0  6ft: 15  7ft: 165  8ft: 0  9ft: 0  10ft: 0  (m)
+
+Shoal: 395  Blue Bank[56 (0.0 m)]  to  First National Bank[57 (0.0 m)]
+Width: 3403.0 (m)  Manning: 0.1  Land Length: 0.0 (m)
+h_upstream: 1ft: 0.305 (m)
+h_downstream: 1ft: 0.305 (m)
+Velocities: 1ft: -0.0 (m/s)
+Q: 1ft: -0.0 (m^3/dt)  Q_total: 0.0
+Wet Length: 1ft: 903  2ft: 0  3ft: 0  4ft: 0  5ft: 0  6ft: 0  7ft: 0  8ft: 0  9ft: 0  10ft: 0  (m)
+
+Shoal: 396  Ninemile Bank[43 (0.0 m)]  to  Blue Bank[56 (0.0 m)]
+Width: 4103.0 (m)  Manning: 0.1  Land Length: 0.0 (m)
+h_upstream: 1ft: 0.305 2ft: 0.61 3ft: 0.914 4ft: 1.219 5ft: 1.524 6ft: 1.829 7ft: 2.134 8ft: 2.438 (m)
+h_downstream: 1ft: 0.305 2ft: 0.61 3ft: 0.914 4ft: 1.219 5ft: 1.524 6ft: 1.829 7ft: 2.134 8ft: 2.438 (m)
+Velocities: 1ft: -0.0 2ft: -0.0 3ft: -0.0 4ft: -0.0 5ft: -0.0 6ft: -0.0 7ft: -0.0 8ft: -0.0 (m/s)
+Q: 1ft: -0.0 2ft: -0.0 3ft: -0.0 4ft: -0.0 5ft: -0.0 6ft: -0.0 7ft: -0.0 8ft: -0.0 (m^3/dt)  Q_total: 0.0
+Wet Length: 1ft: 31  2ft: 311  3ft: 280  4ft: 187  5ft: 249  6ft: 560  7ft: 2239  8ft: 933  9ft: 0  10ft: 0  (m)
+
+Shoal: 397  Ninemile Bank[43 (0.0 m)]  to  Blue Bank[56 (0.0 m)]
+Width: 300.0 (m)  Manning: 0.1  Land Length: 0.0 (m)
+h_upstream: 8ft: 2.438 4ft: 1.219 5ft: 1.524 6ft: 1.829 7ft: 2.134 (m)
+h_downstream: 8ft: 2.438 4ft: 1.219 5ft: 1.524 6ft: 1.829 7ft: 2.134 (m)
+Velocities: 8ft: -0.0 4ft: -0.0 5ft: -0.0 6ft: -0.0 7ft: -0.0 (m/s)
+Q: 8ft: -0.0 4ft: -0.0 5ft: -0.0 6ft: -0.0 7ft: -0.0 (m^3/dt)  Q_total: 0.0
+Wet Length: 1ft: 0  2ft: 0  3ft: 0  4ft: 240  5ft: 1198  6ft: 616  7ft: 1061  8ft: 308  9ft: 0  10ft: 0  (m)
+
+Shoal: 398  Ninemile Bank[43 (0.0 m)]  to  Blue Bank[56 (0.0 m)]
+Width: 888.0 (m)  Manning: 0.1  Land Length: 0.0 (m)
+h_upstream: 1ft: 0.305 2ft: 0.61 3ft: 0.914 4ft: 1.219 5ft: 1.524 (m)
+h_downstream: 1ft: 0.305 2ft: 0.61 3ft: 0.914 4ft: 1.219 5ft: 1.524 (m)
+Velocities: 1ft: -0.0 2ft: -0.0 3ft: -0.0 4ft: -0.0 5ft: -0.0 (m/s)
+Q: 1ft: -0.0 2ft: -0.0 3ft: -0.0 4ft: -0.0 5ft: -0.0 (m^3/dt)  Q_total: 0.0
+Wet Length: 1ft: 322  2ft: 497  3ft: 351  4ft: 615  5ft: 88  6ft: 0  7ft: 0  8ft: 0  9ft: 0  10ft: 0  (m)
+
+
+------------------------------------------------------------------
+Stage Computation Check:
+Constant addition of V = 100000 m^3 to Blue Bank at dt = 60 s Manning 0.1
+./bam.py -t 60 -nt -nm -ne -nr -nR -bc -sl data/init/Shoal_Length_Depth.v0.csv -si 'n'
+------------------------------------------------------------------
+0 ft area ~ 23.21 km^2
+dh = dV / A
+
+Volumes from table below in mass balance check:
+> ( 42889422.3 - 42277036.5 ) / 23.21E6
+[1] 0.02638
+> ( 42894206.3 - 42889422.3 ) / 23.21E6
+[1] 0.0002061
+> ( 42894771.3 - 42894206.3 ) / 23.21E6
+[1] 2.434e-05
+
+------------------------------------------------------------------
+Mass balance check:
+Constant addition of V = 100000 m^3 to Blue Bank at dt = 60 s Manning 0.1
+./bam.py -t 60 -nt -nm -ne -nr -nR -bc -si 'n' -sm 0.1
+------------------------------------------------------------------
+Steady state in Blue Bank
+Time	Stage (m)	Salinity (ppt)	Volume (m^3)	Flow (m^3/dt)
+2010-01-01 00:00:00	0	35	42277036.502	NA
+2010-01-01 01:00:00	0.026	30.417	42889422.365	99828.861
+2010-01-01 02:00:00	0.027	26.442	42894206.319	100113.444
+2010-01-01 03:00:00	0.027	22.987	42894771.381	100125.702
+2010-01-01 04:00:00	0.027	19.983	42894970.214	100128.656
+2010-01-01 05:00:00	0.027	17.371	42895055.603	100129.782
+2010-01-01 06:00:00	0.027	15.101	42895095.24	100130.261
+2010-01-01 07:00:00	0.027	13.128	42895114.684	100130.481
+2010-01-01 08:00:00	0.027	11.413	42895124.574	100130.588
+
+Blue Bank
+ Stage: 0.03 (m)
+ Salinity: 11.41 (g/kg)
+ Volume: 0.0429 (km^3)
+ Shoal Flux: 100130.59 (m^3/t)
+
+                                      Shoal Q_total (m^3/s) (below)
+Blue Bank     to  First National Bank Q_total: 3.6
+Johnson Key   to  Blue Bank           Q_total: 48.2   : Invert B -> A
+Rabbit Key    to  Blue Bank           Q_total: 284.6  : Invert B -> A
+Ninemile Bank to  Blue Bank           Q_total: 371.1  : Invert B -> A
+Ninemile Bank to  Blue Bank           Q_total: 874.3  : Invert B -> A
+Ninemile Bank to  Blue Bank           Q_total: 86.9   : Invert B -> A
+                                      ---------------
+                                        Sum = 1669 (m^3/s)
+
+1669 m^3/s * 60 s/dt = 100140 m^3/dt ~ 100130 m^3/dt  *** Mass balance
+
+
+Shoal: 395  Blue Bank [56] 0.03 (m)  to  First National Bank [57] 0.0 (m)]
+Width: 3403.0 (m)  Manning: 0.1  Land Length: 0.0 (m)
+h_upstream: 1ft: 0.331 (m)
+h_downstream: 1ft: 0.305 (m)
+Velocities: 1ft: 0.013 (m/s)
+Q: 1ft: 3.569 (m^3/dt)  Q_total: 3.6
+
+Shoal: 37  Johnson Key [39] 0.0 (m)  to  Blue Bank [56] 0.03 (m)]
+Width: 1085.0 (m)  Manning: 0.1  Land Length: 0.0 (m)
+h_upstream: 1ft: 0.331 3ft: 0.941 6ft: 1.855 7ft: 2.16 (m)
+h_downstream: 1ft: 0.307 3ft: 0.916 6ft: 1.831 7ft: 2.135 (m)
+Velocities: 1ft: -0.022 3ft: -0.045 6ft: -0.071 7ft: -0.079 (m/s)
+Q: 1ft: -17.819 3ft: -0.624 6ft: -1.961 7ft: -27.835 (m^3/dt)  Q_total: -48.2
+
+Shoal: 38  Rabbit Key [38] 0.0 (m)  to  Blue Bank [56] 0.03 (m)]
+Width: 702.0 (m)  Manning: 0.1  Land Length: 0.0 (m)
+h_upstream: 1ft: 0.331 2ft: 0.636 3ft: 0.941 4ft: 1.246 5ft: 1.551 7ft: 2.16 8ft: 2.465 9ft: 2.77 10ft: 3.075 (m)
+h_downstream: 1ft: 0.308 2ft: 0.613 3ft: 0.918 4ft: 1.222 5ft: 1.527 7ft: 2.137 8ft: 2.442 9ft: 2.746 10ft: 3.051 (m)
+Velocities: 1ft: -0.027 2ft: -0.042 3ft: -0.055 4ft: -0.066 5ft: -0.076 7ft: -0.095 8ft: -0.104 9ft: -0.112 10ft: -0.12 (m/s)
+Q: 1ft: -0.988 2ft: -65.835 3ft: -55.213 4ft: -45.536 5ft: -83.183 7ft: -6.095 8ft: -7.594 9ft: -9.218 10ft: -10.959 (m^3/dt)  Q_total: -284.6
+
+Shoal: 396  Ninemile Bank [43] 0.0 (m)  to  Blue Bank [56] 0.03 (m)]
+Width: 4103.0 (m)  Manning: 0.1  Land Length: 0.0 (m)
+h_upstream: 1ft: 0.331 2ft: 0.636 3ft: 0.941 4ft: 1.246 5ft: 1.551 6ft: 1.855 7ft: 2.16 8ft: 2.465 (m)
+h_downstream: 1ft: 0.305 2ft: 0.61 3ft: 0.915 4ft: 1.22 5ft: 1.525 6ft: 1.829 7ft: 2.134 8ft: 2.439 (m)
+Velocities: 1ft: -0.012 2ft: -0.018 3ft: -0.024 4ft: -0.029 5ft: -0.033 6ft: -0.038 7ft: -0.042 8ft: -0.046 (m/s)
+Q: 1ft: -0.111 2ft: -3.481 3ft: -6.126 4ft: -6.589 5ft: -12.703 6ft: -38.659 7ft: -199.631 8ft: -103.828 (m^3/dt)  Q_total: -371.1
+
+Shoal: 397  Ninemile Bank [43] 0.0 (m)  to  Blue Bank [56] 0.03 (m)]
+Width: 300.0 (m)  Manning: 0.1  Land Length: 0.0 (m)
+h_upstream: 8ft: 2.465 4ft: 1.246 5ft: 1.551 6ft: 1.855 7ft: 2.16 (m)
+h_downstream: 8ft: 2.439 4ft: 1.22 5ft: 1.525 6ft: 1.829 7ft: 2.134 (m)
+Velocities: 8ft: -0.164 4ft: -0.106 5ft: -0.122 6ft: -0.137 7ft: -0.151 (m/s)
+Q: 8ft: -123.567 4ft: -30.95 5ft: -222.889 6ft: -154.52 7ft: -342.413 (m^3/dt)  Q_total: -874.3
+
+Shoal: 398  Ninemile Bank [43] 0.0 (m)  to  Blue Bank [56] 0.03 (m)]
+Width: 888.0 (m)  Manning: 0.1  Land Length: 0.0 (m)
+h_upstream: 1ft: 0.331 2ft: 0.636 3ft: 0.941 4ft: 1.246 5ft: 1.551 (m)
+h_downstream: 1ft: 0.305 2ft: 0.61 3ft: 0.915 4ft: 1.22 5ft: 1.525 (m)
+Velocities: 1ft: -0.025 2ft: -0.039 3ft: -0.051 4ft: -0.062 5ft: -0.072 (m/s)
+Q: 1ft: -2.478 2ft: -11.943 3ft: -16.473 4ft: -46.441 5ft: -9.611 (m^3/dt)  Q_total: -86.9
+
+
+------------------------------------------------------------------
+Salinity Check:
+Constant addition of V = 100000 m^3 to Blue Bank at dt = 60 s Manning 0.1
+./bam.py -t 60 -nt -nm -ne -nr -nR -bc -si 'n' -sm 0.1
+Initial salinity in Blue Bank and surrounding basins is 35
+------------------------------------------------------------------
+Time  Stage (m)  Salinity (ppt)  Volume (m^3)  Flow (m^3/dt)  Salt mass Computed
+2010-01-01 00:00  0      35      42277036.502  NA          1475257188737 35.000
+2010-01-01 01:00  0.026  30.417  42889422.365  99828.861   1266245502462 29.612
+2010-01-01 02:00  0.027  26.442  42894206.319  100113.444  1088903596867 25.462
+2010-01-01 03:00  0.027  22.987  42894771.381  100125.702  936397354552  21.896
+2010-01-01 04:00  0.027  19.983  42894970.214  100128.656  805248211324  18.829
+2010-01-01 05:00  0.027  17.371  42895055.603  100129.782  692466697612  16.192
+2010-01-01 06:00  0.027  15.101  42895095.24   100130.261  595480874620  13.924
+2010-01-01 07:00  0.027  13.128  42895114.684  100130.481  512078630981  11.974
+2010-01-01 08:00  0.027  11.413  42895124.574  100130.588  440357548336  10.297
+            
+Timesteps per Interval  60
+
+------------------------------------------------------------------
+Salinity Check:
+Constant removal of V = -100000 m^3 from Blue Bank at dt = 60 s Manning 0.1
+./bam.py -t 60 -nt -nm -ne -nr -nR -bc -sl data/init/Shoal_Length_Depth.v0.csv -bo /home/jpark/NPS/PyBAM/data/out/out.new -si n
+Initial salinity in Blue Bank and surrounding basins is 35
+------------------------------------------------------------------
+Time  Stage (m)  Salinity (ppt)  Volume (m^3)  Flow (m^3/dt)  Salt mass  Computed
+2010-01-01 00:00  0       35      42277036.502  NA           1475257188737  35.000
+2010-01-01 01:00  -0.028  40.045  41628475.943  -99663.447   1683922547721  40.573
+2010-01-01 02:00  -0.028  45.091  41621074.417  -100100.699  1926874258449  46.435
+2010-01-01 03:00  -0.028  50.137  41620375.078  -100118.019  2204975921589  53.138
+2010-01-01 04:00  -0.028  55.183  41620146.06   -100121.498  2523231812234  60.808
+2010-01-01 05:00  -0.028  60.228  41620048.564  -100122.798  2887429999351  69.585
+2010-01-01 06:00  -0.028  65.274  41620003.643  -100123.348  3304199083423  79.629
+2010-01-01 07:00  -0.028  70.32   41619981.75   -100123.599  3781125957648  91.122
+2010-01-01 08:00  -0.028  75.365  41619970.669  -100123.72  4326893227238  104.275
+
+Timestep per interval  60
