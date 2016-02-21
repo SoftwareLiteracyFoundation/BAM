@@ -59,6 +59,7 @@ class Basin:
 
         # Rainfall station
         self.rain_station = None
+        self.rain_scale   = None # Factor for rain volume calibration
 
         # Salinity station and salinity set from data flag
         self.salinity_station   = None

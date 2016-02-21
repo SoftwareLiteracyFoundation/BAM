@@ -299,7 +299,8 @@ class Model:
             if Basin.boundary_basin is True :
                 continue
 
-            rain_cm_day     = station_rain_map[ Basin.rain_station ]
+            rain_cm_day = station_rain_map[ Basin.rain_station ] * \
+                          Basin.rain_scale
 
             rain_volume_day = rain_cm_day / 100 * Basin.area
 

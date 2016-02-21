@@ -310,12 +310,31 @@ def GetBasinParameters( model ):
         for basin_num, Basin in model.Basins.items() :
             print( basin_num, ' : ', Basin.name )
 
-    # The csv file has XX columns, 1 = basin number, 2 = basin name
-    # 3 = Rain station, 4 = Salinity station
+    # The csv file has 5 columns, 1 = basin number, 2 = basin name
+    # 3 = Rain station, 4 = Rain scale, 5 = Salinity station
     # first row is header
     fd   = open( model.args.path + model.args.basinParameters, 'r' )
     rows = fd.readlines()
     fd.close()
+
+    # Create a mapping of column index and variable name
+    header = rows[ 0 ].split( ',' ) 
+    words  = [ word.strip() for word in header ]
+
+    var_column_map = dict()
+    for word in words :
+        var_column_map[ word ] = words.index( word )
+            
+    # Validate the file has the correct columns
+    valid_columns = [ 'Basin', 'Name', 'Rain Station',
+                      'Rain Scale', 'Salinity Station' ]
+
+    for valid_column in valid_columns :
+        if valid_column not in words :
+            errMsg = 'GetBasinParameters: Basin parameters ' +\
+                     model.args.basinParameters +\
+                     ' does not have column ', valid_column
+            raise Exception( errMsg )
 
     # JP : default rain & salinity station maps are Hardcoded... Bogus!
     # Map of rain gauge stations with a list of affected basins
@@ -336,14 +355,17 @@ def GetBasinParameters( model ):
     # Process each row of data, skip the header
     for i in range( 1, len( rows ) ) :
         row   = rows[ i ]
-        words = row.split(',')
-            
-        basin_num        = int( words[ 0 ] )
-        rain_station     = words[ 2 ].strip()
-        salinity_station = words[ 3 ].strip()
+        words = row.split( ',' )
+
+        basin_num    = int( words[ var_column_map[ 'Basin' ] ] )
+        basin_name   =      words[ var_column_map[ 'Name' ] ].strip()
+        rain_station =      words[ var_column_map[ 'Rain Station' ] ].strip()
+        rain_scale   =float(words[ var_column_map[ 'Rain Scale' ] ].strip() )
+        salinity_station =  words[ var_column_map['Salinity Station']].strip()
 
         if basin_num not in model.Basins.keys() :
-            errMsg = 'GetBasinParameters: Failed to find basin ' + basin_num
+            errMsg = 'GetBasinParameters: Failed to find basin ' +\
+                     basin_name + ' number: ', basin_num
             raise Exception( errMsg )
 
         if not model.args.noRain :
@@ -353,6 +375,9 @@ def GetBasinParameters( model ):
                 raise Exception( errMsg )
 
             model.rain_stations[ rain_station ].append( basin_num )
+
+            Basin = model.Basins[ basin_num ]
+            Basin.rain_scale = rain_scale
 
         if model.args.gaugeSalinity or \
            model.args.salinityInit.lower() == 'yes' :
