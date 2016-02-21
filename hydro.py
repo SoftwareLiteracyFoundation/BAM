@@ -1,4 +1,3 @@
-
 # Python distribution modules
 from math import sqrt
 
@@ -78,8 +77,8 @@ def ShoalVelocities( model ) :
     for shoal_number, Shoal in model.Shoals.items() :
 
         if model.args.DEBUG_ALL :
-            if Shoal.Basin_A not in model.Basins.keys() or \
-               Shoal.Basin_B not in model.Basins.keys() :
+            if Shoal.Basin_A_key not in model.Basins.keys() or \
+               Shoal.Basin_B_key not in model.Basins.keys() :
                 continue
         
         # If shoal boundary is land (width zero) continue
@@ -106,19 +105,16 @@ def ShoalVelocities( model ) :
 
             previous_velocity = Shoal.velocity[ depth_ft ]
 
-            # Update friction_factor and hydraulic_radius for next
-            # iteration or timestep
-            #
-            # Note: if the hypsometry is a linear approximation, not
-            # discrete steps, then fathom does a small correction to
-            # reduce the hydraulic radius here...
-
-            # See Equation 1.11, write it like you see it!
-            Shoal.friction_factor[ depth_ft ] = \
-                2 * constants.g * \
-                pow( Shoal.manning_coefficient, 2 ) * \
-                Shoal.width * \
-                pow( Shoal.hydraulic_radius[ depth_ft ], -4/3 )
+            # Update friction_factor for next iteration or timestep
+            hydraulic_radius = Shoal.hydraulic_radius[ depth_ft ]
+            if hydraulic_radius > 0 :
+                Shoal.friction_factor[ depth_ft ] = \
+                    2 * constants.g * \
+                    pow( Shoal.manning_coefficient, 2 ) * \
+                    Shoal.width * \
+                    pow( hydraulic_radius, -4/3 )
+            else :
+                Shoal.friction_factor[ depth_ft ] = 1E9
             
             #--------------------------------------------------------
             # Iteration to estimate velocity and hydraulic.radius
@@ -160,8 +156,8 @@ def ShoalBasinLevels( model, Shoal, depth_ft ) :
 
     depth = depth_ft * 0.3048 # convert feet to meters
 
-    Basin_A = model.Basins[ Shoal.Basin_A ]
-    Basin_B = model.Basins[ Shoal.Basin_B ]
+    Basin_A = Shoal.Basin_A
+    Basin_B = Shoal.Basin_B
 
     # h_basin_* will be negative only if water_level is negative 
     # and greater in magnitude than depth
@@ -172,10 +168,10 @@ def ShoalBasinLevels( model, Shoal, depth_ft ) :
         # If water level is below shoal: no flow
         Shoal.h_upstream      [ depth_ft ] = h_Basin_A
         Shoal.h_downstream    [ depth_ft ] = h_Basin_B
-        Shoal.friction_factor [ depth_ft ] = 0
+        Shoal.friction_factor [ depth_ft ] = 1E9
         Shoal.velocity        [ depth_ft ] = 0
-        Shoal.hydraulic_radius[ depth_ft ] = 0.3048 # JP ?
-        Shoal.flow_sign                    = 0      # No flow
+        Shoal.hydraulic_radius[ depth_ft ] = 0
+        Shoal.flow_sign                    = 0     # No flow
 
     elif h_Basin_A > h_Basin_B :
         Shoal.h_upstream  [ depth_ft ] = h_Basin_A
@@ -210,13 +206,14 @@ def VelocityHydraulicRadius( Shoal, depth_ft ) :
     # Velocity head
     h_velocity = level_difference / ( 1 + friction_factor )
 
+    # sqrt[ (m/s^2) * (m) ] = (m/s)
     Shoal.velocity[ depth_ft ] = Shoal.flow_sign * \
                                  sqrt( 2 * constants.g * h_velocity )
 
     # If the flow cross section is a wide, shallow rectangle, then the
     # average depth is an approximation of the hydraulic radius
     Shoal.hydraulic_radius[ depth_ft ] = \
-                        abs ( h_upstream - h_velocity + h_downstream ) / 2
+        max( 0, ( h_upstream - h_velocity + h_downstream ) ) / 2
 
 #---------------------------------------------------------------
 # 
@@ -227,7 +224,9 @@ def MassTransport( model ) :
     if model.args.DEBUG_ALL :
         print( '-> MassTransport' )
 
+    #--------------------------------------------------------------------
     # Sum the total flow over all shoal depths over the timestep
+    #--------------------------------------------------------------------
     # Q(m^3/s) = v(m/s)   * A(m^2)
     # Vol(m^3) = Q(m^3/s) * dt(s)
     for shoal_number, Shoal in model.Shoals.items() :
@@ -236,10 +235,12 @@ def MassTransport( model ) :
         if Shoal.no_flow :
             continue
         
-        Basin_A = model.Basins[ Shoal.Basin_A ]
-        Basin_B = model.Basins[ Shoal.Basin_B ]
+        Basin_A = Shoal.Basin_A
+        Basin_B = Shoal.Basin_B
         
+        #--------------------------------------------------------
         # Process each shoal depth that has non-zero wet_length 
+        #--------------------------------------------------------
         for depth_ft, length in Shoal.wet_length.items() :
 
             if length < 1 :
@@ -265,10 +266,11 @@ def MassTransport( model ) :
             if h_downstream > 0 :
                 h_flow = h_downstream
             else :
-                if hydraulic_radius > 0 :
-                    h_flow = hydraulic_radius
-                else :
-                    h_flow = 2 * Shoal.h_upstream[ depth_ft ] / 3 # JP ?
+                h_flow = hydraulic_radius
+                #if hydraulic_radius > 0 :
+                #    h_flow = hydraulic_radius
+                #else :
+                #    h_flow = 2 * Shoal.h_upstream[ depth_ft ] / 3
 
             cross_section = h_flow * Shoal.wet_length[ depth_ft ]
 
@@ -288,19 +290,26 @@ def MassTransport( model ) :
         # The sign of Q handles the transfer direction
         # flow_sign positive : A -> B
         # flow_sign negative : B -> A
-        delta_volume = Shoal.Q_total * model.timestep
+        delta_volume = Shoal.Q_total * model.timestep # (m^3/timestep)
 
-        Basin_A.water_volume -= delta_volume
-        Basin_B.water_volume += delta_volume
+        Shoal.volume_A_B =  delta_volume # (m^3/timestep)
+        Shoal.volume_B_A = -delta_volume # (m^3/timestep)
 
-        # Shallow banks can become weirs with no volume at low stage
+        if not Basin_A.boundary_basin :
+            Basin_A.water_volume -= delta_volume
+        if not Basin_B.boundary_basin :
+            Basin_B.water_volume += delta_volume
+
+        # Shallow banks can have no volume at low stage
         # Limit the volume to a lower bound
-        if Basin_A.water_volume < 1E5 :
-            Basin_A.water_volume = Basin_A.previous_volume
-        if Basin_B.water_volume < 1E5 :
-            Basin_B.water_volume = Basin_B.previous_volume
+        if Basin_A.water_volume < 0 :
+            Basin_A.water_volume = 0
+        if Basin_B.water_volume < 0 :
+            Basin_B.water_volume = 0
+        if Basin_A.water_volume == 0 or Basin_B.water_volume == 0 :
+            continue  # don't transfer salt
 
-        # Now that basin volumes are updated transfer salt 
+        # Establish source basin and it's salinity
         if Shoal.flow_sign == 1 :     # flow from A -> B
             source_salinity = Basin_A.salinity
         elif Shoal.flow_sign == -1  : # flow from B -> A
@@ -308,16 +317,25 @@ def MassTransport( model ) :
         else :
             source_salinity = 0
 
+        # Transfer salt 
         # delta salt_mass = salinity (g/kg) * Vol (m^3) * rho (kg/m^3)
         # Water at 25 C rho = 997 kg/m^3
+        delta_salt_mass = source_salinity * delta_volume * 997
+
         if not Basin_A.boundary_basin :
-            Basin_A.salt_mass -= source_salinity * Shoal.Q_total * 997
+            Basin_A.salt_mass -= delta_salt_mass
 
         if not Basin_B.boundary_basin :
-            Basin_B.salt_mass += source_salinity * Shoal.Q_total * 997
+            Basin_B.salt_mass += delta_salt_mass
 
+        if Basin_A.salt_mass < 0 :
+            Basin_A.salt_mass = 0
+        if Basin_B.salt_mass < 0 :
+            Basin_B.salt_mass = 0
 
+    #----------------------------------------------------------------
     # Sum basin flow and compute salinity
+    #----------------------------------------------------------------
     for Basin in model.Basins.values() :
 
         if Basin.boundary_basin :
@@ -326,18 +344,26 @@ def MassTransport( model ) :
         Basin.shoal_transport = 0
 
         for Shoal in Basin.Shoals :
-            Basin.shoal_transport += Shoal.Q_total
+            if Basin is Shoal.Basin_A :
+                Basin.shoal_transport += Shoal.volume_A_B
+            elif Basin is Shoal.Basin_B :
+                Basin.shoal_transport += Shoal.volume_B_A 
+            else :
+                raise Exception( 'Invalid Basin in Shoal' )
 
-        # Salinity adjustment o/oo = g / ( m^3 * (kg/m^3) )
-        if not Basin.salinity_from_data :
+        # Salinity adjustment o/oo = g/kg = g / ( m^3 * (kg/m^3) )
+        if not Basin.salinity_from_data and Basin.water_volume :
             new_salinity = Basin.salt_mass / ( Basin.water_volume * 997 )
 
             # On shallow banks a low stage/volume can spike the salinity
             # Log a message and ignore the new value
-            if new_salinity > 80 :
-                if Basin.name not in [ 'First National Bank',
-                                       'Sandy Key',   'Dildo Key Bank',
-                                       'Snake Bight', 'Rankin Bight'] :
+            if new_salinity > 90 or new_salinity < 0 :
+                if Basin.name not in [ 'First National Bank', 
+                                       'Ninemile Bank',
+                                       'Conchie Channel',
+                                       'Johnson Key',    'Sandy Key',
+                                       'Dildo Key Bank', 'Snake Bight', 
+                                       'Rankin Bight',   'Rankin Lake' ] :
                     msg = '*** MassTransport: Basin ' + Basin.name +\
                           ' salinity: '  + str( round( new_salinity, 1 ) ) +\
                           ' volume: '    + str( round( Basin.water_volume ) ) +\
@@ -349,14 +375,23 @@ def MassTransport( model ) :
             else :
                 Basin.salinity = new_salinity
 
-
+    #----------------------------------------------------------------
     # If EDEN stage is used to drive EVER runoff, sum the shoal transport
     # for reporting the total runoff in output data. 
+    #----------------------------------------------------------------
     if not model.args.noStageRunoff :
+
         for Basin, Shoals in model.runoff_stage_shoals.items() :
+
             Basin.runoff_EVER = 0
+
             for Shoal in Shoals :
-                Basin.runoff_EVER += Shoal.Q_total
+                # All EVER runoff destination basins are Shoal.Basin_B
+                # Flow sign convention is: flow out +, flow in -
+                if Basin is Shoal.Basin_B :
+                    Basin.runoff_EVER -= Shoal.volume_A_B
+                else :
+                    raise Exception( 'Invalid Basin in Shoal (Runoff)' )
             
 #---------------------------------------------------------------
 # 

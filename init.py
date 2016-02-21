@@ -71,7 +71,8 @@ def InitTimeBasins( model ):
             errMsg = '\nGetBasinTidalData failed. See the console.\n'
             raise Exception( errMsg )
                 
-        GetSeasonalMSL( model )                 # -sm
+    if not model.args.noMeanSeaLevel and time_changed : # -nm
+        GetSeasonalMSL( model )                         # -sm
 
     if not model.args.noRain and time_changed : # -nr
         GetBasinRainData( model )               # -br
@@ -830,6 +831,22 @@ def GetBasinRunoffStageData( model ):
         model.runoff_stage_shoals[ model.Basins[ model_basin_num ] ] =\
             [ model.Shoals[ shoal_num ] for shoal_num in shoal_nums ]
 
+    # Validate the Shoals : Basins
+    for Basin, Shoals in model.runoff_stage_shoals.items() :
+
+        for Shoal in Shoals :
+            if Basin is Shoal.Basin_A :
+                continue
+            elif Basin is Shoal.Basin_B :
+                continue
+            else :
+                errMsg = 'GetBasinRunoffStageData: Invalid Basin: ' +\
+                         Basin.name + ' for shoal with A: ' +\
+                         Shoal.Basin_A.name + ' B: ' + Shoal.Basin_B.name +\
+                         ' in runoff_stage_shoals map basinStageRunoffMap (-bS)'
+                raise ValueError( errMsg )
+
+
     if model.args.DEBUG_ALL :
         print( 'GetBasinRunoffStageData: runoff_stage_shoals:\n' )
         print( model.runoff_stage_shoals )
@@ -1188,8 +1205,11 @@ def CreateShoals( model ):
         # Save the land length
         shoal.land_length = float( words[ len( words ) - 2 ].strip() )
 
-        # Save Mannings
-        shoal.manning_coefficient = float( words[len( words ) - 1].strip() )
+        # Save Mannings unless overridden with -sf
+        if model.args.shoalManning :
+            shoal.manning_coefficient = model.args.shoalManning
+        else :
+            shoal.manning_coefficient = float(words[len( words ) - 1].strip())
 
         if model.args.DEBUG_ALL :
             print( 'Shoal', shoalNumber, 'manning', 
@@ -1261,15 +1281,17 @@ def GetShoalParameters( model ):
             Basin = model.Basins[ basin1 ]
 
             Basin.shoal_nums.add( shoalNumber )
-            Basin.Shoals.append( Shoal )
-            Shoal.Basin_A = basin1
+            Basin.Shoals.append ( Shoal )
+            Shoal.Basin_A_key = basin1
+            Shoal.Basin_A     = Basin
 
         if basin2 in model.Basins.keys() :
             Basin = model.Basins[ basin2 ]
 
             Basin.shoal_nums.add( shoalNumber )
             Basin.Shoals.append( Shoal )
-            Shoal.Basin_B = basin2
+            Shoal.Basin_B_key = basin2
+            Shoal.Basin_B     = Basin
 
 #----------------------------------------------------------------
 # 

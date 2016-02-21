@@ -208,7 +208,7 @@ def ParseCmdLine():
                         dest    = 'shoalParameters', type = str, 
                         action  = 'store', 
                         default = 'data/init/Shoal_Parameters.csv',
-                        help    = 'Shoal midpoint and basin connection file:'+\
+                        help    = 'Shoal to basin mapping file:'+\
                                   '-sp data/init/Shoal_Parameters.csv' )
 
     parser.add_argument('-sl', '--shoalLength',
@@ -218,6 +218,12 @@ def ParseCmdLine():
                         help    = 'Shoal width and length depth input file:' +\
                                   '-sl data/init/Shoal_Length_Depth.csv' )
 
+    parser.add_argument('-sm', '--shoalManning',
+                        dest    = 'shoalManning', type = float, 
+                        action  = 'store', 
+                        default = None,
+                        help    = 'Manning friction for all shoals: -sf 0.1' )
+
     parser.add_argument('-sf', '--salinityFile',
                         dest    = 'salinityFile', type = str, 
                         action  = 'store', 
@@ -226,7 +232,7 @@ def ParseCmdLine():
                         help  = 'Daily salinity data file: -sf data/Salinity/'+\
                                 'DailySalinityFilled_1999-9-1_2015-12-8.csv' )
 
-    parser.add_argument('-sm', '--seasonalMSL',
+    parser.add_argument('-msl', '--seasonalMSL',
                         dest    = 'seasonalMSL', type = str, 
                         action  = 'store', 
                         default = 'data/Tide/' +\
@@ -307,6 +313,11 @@ def ParseCmdLine():
                         dest   = 'noTide', # type = bool, 
                         action = 'store_true', default = False,
                         help   = 'Disable tidal boundary inputs.')
+
+    parser.add_argument('-nm', '--noMeanSeaLevel',
+                        dest   = 'noMeanSeaLevel', # type = bool, 
+                        action = 'store_true', default = False,
+                        help   = 'Disable mean sea level inputs.')
 
     parser.add_argument('-gs', '--gaugeSalinity',
                         dest   = 'gaugeSalinity', # type = bool, 

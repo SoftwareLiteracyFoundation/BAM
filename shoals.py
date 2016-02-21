@@ -18,20 +18,22 @@ class Shoal:
         self.Axes_plot  = None  # Created by matplotlib plot() (Line2D)
 
         # Basins for this shoal
-        self.Basin_A    = None  # Basin number : key in Basins map
-        self.Basin_B    = None  # Basin number : key in Basins map
+        self.Basin_A     = None # Basin object
+        self.Basin_B     = None # Basin object
+        self.Basin_A_key = None # Basin number : key in Basins map
+        self.Basin_B_key = None # Basin number : key in Basins map
 
         # Physical variables
         # JP: All of these dictionaries share the same keys
-        # Some efficiency could be gained by having one dictionary with
-        # the depth_ft keys holding dictionaries with the { variable : values }
-        self.velocity            = dict() # { depth(ft) : (m^2/s)  }
-        self.wet_length          = dict() # { depth(ft) : (m)      }
-        self.friction_factor     = dict() # { depth(ft) : factor   }
-        self.h_upstream          = dict() # { depth(ft) : (m)      }
-        self.h_downstream        = dict() # { depth(ft) : (m)      }
-        self.cross_section       = dict() # { depth(ft) : (m^2)    }
-        self.hydraulic_radius    = dict() # { depth(ft) : (m)      }
+        # Some efficiency might be gained with one dictionary using
+        # depth_ft keys holding dictionaries with the { variable : values }
+        self.velocity            = dict() # { depth(ft) : (m/s)  }
+        self.wet_length          = dict() # { depth(ft) : (m)    }
+        self.friction_factor     = dict() # { depth(ft) : factor }
+        self.h_upstream          = dict() # { depth(ft) : (m)    }
+        self.h_downstream        = dict() # { depth(ft) : (m)    }
+        self.cross_section       = dict() # { depth(ft) : (m^2)  }
+        self.hydraulic_radius    = dict() # { depth(ft) : (m)    }
         self.manning_coefficient = None   # 
         self.land_length         = None   # (m)
         self.width               = None   # (m)
@@ -44,10 +46,10 @@ class Shoal:
         self.flow_sign           = 0      # -1, 0, 1 : B -> A, None, A -> B
         self.Q                   = dict() # { depth(ft) : Q(m^3/s) }
         self.Q_total             = 0      # (m^3/s)
-        self.volume_A_B          = 0      # (m^3/time)
-        self.volume_B_A          = 0      # (m^3/time)
-        self.volume_residual     = 0      # (m^3/time)
-        self.volume_total        = 0      # (m^3/time)
+        self.volume_A_B          = 0      # (m^3/timestep)
+        self.volume_B_A          = 0      # (m^3/timestep)
+        self.volume_residual     = 0      # (m^3/timestep)
+        self.volume_total        = 0      # (m^3/timestep)
 
         # Solute transports
         # self.solute_transport_A_B      = None   # (mol/time)
@@ -61,13 +63,13 @@ class Shoal:
     def Print( self, shoal_number = None, print_all = False ) :
         '''Display shoal info on the gui msgText box.'''
         
-        Basin_A = self.model.Basins[ self.Basin_A ]
-        Basin_B = self.model.Basins[ self.Basin_B ]
+        Basin_A = self.Basin_A
+        Basin_B = self.Basin_B
 
         shoalInfo = '\nShoal: ' + str( shoal_number ) + '  '      +\
-            Basin_A.name + ' [' + str( self.Basin_A ) + '] '      +\
+            Basin_A.name + ' [' + str( self.Basin_A_key ) + '] '  +\
             str( round( Basin_A.water_level, 2 ) ) + ' (m)  to  ' +\
-            Basin_B.name + ' [' + str( self.Basin_B ) + '] '      +\
+            Basin_B.name + ' [' + str( self.Basin_B_key ) + '] '  +\
             str( round( Basin_B.water_level, 2 ) ) + ' (m)]\n'
 
         shoalInfo = shoalInfo +\
@@ -97,8 +99,8 @@ class Shoal:
         for depth, Q in self.Q.items() :
             shoalInfo = shoalInfo + str( depth ) + 'ft: ' +\
                 str( round( Q, 3 ) ) + ' '
-        shoalInfo = shoalInfo + '(m^3/dt)  Q_total: ' +\
-            str( round( self.Q_total, 1 ) ) + '\n'
+        shoalInfo = shoalInfo + '(m^3/s)  Q_total: ' +\
+            str( round( self.Q_total, 1 ) ) + ' (m^3/s)\n'
 
         if print_all :
             shoalInfo = shoalInfo + '\nWet Length: '

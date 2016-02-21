@@ -214,7 +214,7 @@ class GUI:
         
         # Button for self.Init()
         initButton = ttk.Button( controlframe, text = "Init",
-                                 command = lambda : InitTimeBasins( self.model ) )
+                                 command = lambda : InitTimeBasins(self.model))
 
         # Button for model.Run()
         runButton = ttk.Button( controlframe, text = "Run",
@@ -380,8 +380,8 @@ class GUI:
             self.plotVar_IntVars[ plotVariable ] = Tk.IntVar()
 
         # Set Salinity, Stage, Flow, Volume, Rain, ET as defaults
-        self.plotVar_IntVars[ 'Stage'       ].set( 1 )
         self.plotVar_IntVars[ 'Salinity'    ].set( 1 )
+        self.plotVar_IntVars[ 'Stage'       ].set( 1 )
         self.plotVar_IntVars[ 'Flow'        ].set( 1 )
         self.plotVar_IntVars[ 'Volume'      ].set( 1 )
         self.plotVar_IntVars[ 'Rain'        ].set( 1 )
@@ -543,7 +543,7 @@ class GUI:
             rows = fd.readlines()
             fd.close()
 
-            # Time,		    Stage,  Flow,    Salinity,	Volume
+            # Time,  Stage (m),  Flow (m^3/t),  Salinity (ppt),	Volume (m^3)
             # 2000-01-01 00:00:00,  0.0,    0.0,     37.0,	52475622.557
             # 2000-01-01 01:00:00, -0.0,    45.772,  37.0,	52459564.487
             variables = rows[ 0 ].split(',')
@@ -553,7 +553,9 @@ class GUI:
             time_col_i = variables.index( 'Time' )
 
             try :
-                data_col_i = variables.index( plotVariable )
+                unit_str = constants.PlotVariableUnit[ plotVariable ]
+                data_col_i = variables.index( plotVariable + ' ' + unit_str )
+
             except ValueError as err :
                 msg = "\nPlotArchiveData: {0}\n".format( err )
                 self.Message( msg )
@@ -607,7 +609,7 @@ class GUI:
         # The listvariable = [] option won't work if
         # there is whitespace in a name, so insert them manually
         i = 1
-        for gauge in self.model.salinity_stations.keys() :
+        for gauge in sorted( self.model.salinity_stations.keys() ) :
             self.gaugeListBox.insert( i, '        ' + gauge )
             i = i + 1
 
@@ -636,6 +638,11 @@ class GUI:
     #----------------------------------------------------------------
     def ProcessGaugeListbox( self, *args ):
         '''Read the gauge listbox selection, Plot the selected data.'''
+
+        # This function clears the basin listbox selection, but calling
+        # self.GetBasinListbox(): self.basinListBox.selection_get() returns
+        # the self.gaugeListBox.selection_get()... ???
+
         # \n separated items in one string
         selected = self.gaugeListBox.selection_get()
 
@@ -1030,12 +1037,12 @@ class GUI:
                 # there is whitespace in a name, so insert them manually
                 i = 1
                 for shoal_number in BasinObj.shoal_nums :
-                    Basin_A = self.model.Shoals[ shoal_number ].Basin_A
-                    Basin_B = self.model.Shoals[ shoal_number ].Basin_B
+                    Basin_A_key = self.model.Shoals[ shoal_number ].Basin_A_key
+                    Basin_B_key = self.model.Shoals[ shoal_number ].Basin_B_key
 
                     shoalInfo = str( shoal_number ) + '   ' +\
-                        self.model.Basins[ Basin_A ].name + ' : ' +\
-                        self.model.Basins[ Basin_B ].name
+                        self.model.Basins[ Basin_A_key ].name + ' : ' +\
+                        self.model.Basins[ Basin_B_key ].name
                         
                     self.shoalListBox.insert( i, shoalInfo )
                     i = i + 1

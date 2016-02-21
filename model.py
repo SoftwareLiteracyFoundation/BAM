@@ -25,12 +25,12 @@ import constants
 #---------------------------------------------------------------
 class Model:
     '''The main model object. It contains a Basins dictionary of Basin
-    objects, and a Shoals dictionary of Shoal objects. The Basins and 
-    Shoals keys are integer numbers.'''
+    objects, and a Shoals dictionary of Shoal objects. The Run() method
+    executes a model simulation.'''
 
     def __init__( self, root, args ):
 
-        self.Version             = 'Bay Assessment Model\nVersion 0.1\n'
+        self.Version = 'Bay Assessment Model\n' + constants.Version + '\n'
         self.args                = args
         self.status              = constants.Status()
         self.state               = None
@@ -69,13 +69,13 @@ class Model:
         self.GetStartStopTime()
 
         # Create dictionary of Basin objects from shapefile (-b)
-        self.Basins = dict()
+        self.Basins = dict() # { basin_number : Basin }
         init.CreateBasinsFromShapefile( self ) # and add boundary basins
         init.GetBasinAreaDepths( self )  # -bd
         init.GetBasinParameters( self )  # -bp
 
         # Create dictionary of Shoal objects from shoalLength.csv file (-sl)
-        self.Shoals = dict()
+        self.Shoals = dict() # { shoal_number : Shoal }
         init.CreateShoals( self )
         init.GetShoalParameters( self ) # -sp
 
@@ -103,7 +103,7 @@ class Model:
             print( '-> Run' )
 
         # Prepare to write output
-        # First probe the basinOutputDir and create if needed
+        # Probe the basinOutputDir and create if needed
         output_dir = self.args.basinOutputDir 
         if not path_exists( output_dir ) :
             msg = 'Run: ' + output_dir +\
@@ -125,7 +125,7 @@ class Model:
                 self.gui.Message( msg )
                 return
 
-        #-------------------------------------------------------
+        #----------------------------------------------------------------
         # Set appropriate legend and data type for basin.SetBasinMapColor 
         # called for map plot updates below
         mapPlotVariable = self.gui.mapPlotVariable.get()
@@ -150,8 +150,8 @@ class Model:
             self.gui.Message( msg )
             mapPlotVariable = 'Stage'
             legend_bounds   = self.args.stage_legend_bounds
-        #-----------------------------------------------------------
 
+        #-----------------------------------------------------
         # Setup start time and status
         if self.state == self.status.Init :
             self.current_time = self.start_time
@@ -167,17 +167,27 @@ class Model:
               asctime( ( localtime( run_start_time ) ) ) + '.\n'
         self.gui.Message( msg )
 
-        self.state = self.status.Running
-        zero_timedelta = timedelta() # timedelta() = zero delta time
+        # Copy initial values to the data logs
+        self.times.append( self.current_time )
+        for Basin in self.Basins.values() :
+            Basin.CopyDataRecord()
  
+        zero_timedelta = timedelta() # timedelta() = zero delta time
+        self.state = self.status.Running
+
         #------------------------------------------------------------
         # Simulation loop
         #------------------------------------------------------------
-        while self.current_time <= self.end_time and \
-              self.state == self.status.Running :
+        while self.state == self.status.Running :
 
             if self.args.DEBUG_ALL :
                 print( self.current_time )
+
+            # Advance time
+            self.current_time = self.current_time + \
+                                timedelta( seconds = self.timestep )
+
+            self.unix_time += self.timestep
 
             # Update time on gui currentTimeLabel every self.timeLabelUpdate 
             timeDelta = ( self.current_time - self.start_time )
@@ -225,18 +235,16 @@ class Model:
 
             # Transfer data values to records for plots & file output
             quotient, remainder = divmod( timeDelta, self.outputInterval )
-            if remainder == zero_timedelta :
+            if remainder == zero_timedelta or \
+               self.current_time == self.end_time :
                 # Store datetime reference
                 self.times.append( self.current_time )
 
                 for Basin in self.Basins.values() :
                     Basin.CopyDataRecord()
 
-            # Advance time for next step
-            self.current_time = self.current_time + \
-                                timedelta( seconds = self.timestep )
-
-            self.unix_time += self.timestep
+            if self.current_time >= self.end_time :
+                self.state = self.status.Finished
         #------------------------------------------------------------
         # End Simulation loop
         #------------------------------------------------------------
@@ -388,17 +396,16 @@ class Model:
         if self.args.DEBUG_ALL :
             print( '-> GetTides' )
 
-        if self.args.noTide :
-            return
-
         # Get the seasonal mean sea level anomaly
         try :
-            self.seasonal_MSL = \
-                interpolate.splev( self.unix_time, 
-                                   self.seasonal_MSL_splrep, 
-                                   der = 0 ).round( 3 )
+            if self.args.noMeanSeaLevel :
+                self.seasonal_MSL = 0
+            else :
+                self.seasonal_MSL = interpolate.splev( self.unix_time, 
+                                                       self.seasonal_MSL_splrep,
+                                                       der = 0 ).round( 3 )
         except ValueError as err :
-            print( 'GetTides(): at ',
+            print( 'GetTides(): interpolate seasonal_MSL at ',
                    str( self.current_time ), '[', 
                    str( self.unix_time ), ']  ', err )
             self.seasonal_MSL = 0
@@ -406,23 +413,27 @@ class Model:
         # Get the tidal value for each boundary basin
         for Basin in self.Basins.values() :
             if Basin.boundary_basin :
-                if Basin.boundary_function :
-                    try :
+                try :
+                    if self.args.noTide :
+                        wl = 0
+                    else :
                         # Note this returns a numpy array, but we have 
                         # appended floats to a list for other plot_variable
                         # data values, and use round() on those.
                         # JP might change all data to numpy arrays
-                        wl = float( Basin.boundary_function( self.unix_time ) )
+                        if Basin.boundary_function :
+                            wl = float(Basin.boundary_function(self.unix_time))
 
-                    except ValueError as err :
-                        print( 'GetTides() basin: ', Basin.name, ' at ',
-                               str( self.current_time ), '[', 
-                               str( self.unix_time ), ']  ', err )
-                        wl = 0
+                except ValueError as err :
+                    print( 'GetTides() boundary_function basin: ', Basin.name, 
+                           ' at ',
+                           str( self.current_time ), '[', 
+                           str( self.unix_time ), ']  ', err )
+                    wl = 0
 
-                    wl += self.seasonal_MSL
-
-                    Basin.water_level = wl
+                wl += self.seasonal_MSL
+                
+                Basin.water_level = wl
 
     #----------------------------------------------------------------
     # 

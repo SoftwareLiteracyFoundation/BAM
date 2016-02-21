@@ -74,19 +74,22 @@ def GeneralNotes() :
     specify a fixed flow into Blue Bank with -bc, a 60 s timestep and
     all shoal mannings coefficients of 0.1 :
 
-    ./bam.py -t 60 -nt -ne -nr -nR -bc -sl data/init/Shoal_Length_Depth.v0.csv
+    ./bam.py -t 60 -nt -nm -ne -nr -nR -bc -si 'n' -sm 0.1
 
     Blue Bank should then equilibriate to:
-    Stage:       0.03 (m)
-    Shoal Flux: -1657 (m^3/t)
+     Stage: 0.03 (m)
+     Salinity: 11.41 (g/kg)
+     Volume: 0.0429 (km^3)
+     Shoal Flux: 100130.59 (m^3/t)
 
     See etc/Notes.txt for mass balance calculation verification. 
 
-    Salinities are taken from the NPS hydro station database. If a 
-    station is within a basin, then salinities come from the observed
-    data, not simulation.  These act as internal boundary conditions
-    that influence salinities in other basins via mass transport/Rain/ET.
-    This can be disabled with the -ns option. 
+    Basin parameters are initialized in the basinInit -bi file.
+
+    Rain is taken from the nearest rain station, with the basin : gauge
+    mapping defined in the basinParameter -bp file.  Salinities can be 
+    fixed from the observed data, not simulated with -gs for basins : gauges
+    listed in the basinParameter -bp file. 
     '''
     pass
 

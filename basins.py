@@ -42,20 +42,20 @@ class Basin:
         self.temperature     = None       # (C)
 
         # Volume transports
-        self.shoal_transport = None   # (m^3/time)  Sum : Shoal Q_total
-        self.rainfall        = None   # (m^3/time)
-        self.runoff_flow     = None   # (m^3/time) imposed flow
-        self.runoff_EVER     = None   # (m^3/time) from EDEN stage over shoals
-        self.groundwater     = None   # (m^3/time)
-        self.evaporation     = None   # (m^3/time)
+        self.shoal_transport = None   # (m^3/timestep) Sum : Shoal Q_total * dt
+        self.rainfall        = None   # (m^3/timestep)
+        self.runoff_flow     = None   # (m^3/timestep) imposed flow
+        self.runoff_EVER     = None   # (m^3/timestep) EDEN stage over shoals
+        self.groundwater     = None   # (m^3/timestep)
+        self.evaporation     = None   # (m^3/timestep)
 
         self.shoal_nums = set() # Shoal numbers : keys in Shoals map, for gui
         self.Shoals     = []    # Shoals
 
         # Boundary conditions
-        self.boundary_basin      = boundary # True / False
-        self.boundary_type       = None     # flow or stage
-        self.boundary_function   = None     # scipy interpolate function
+        self.boundary_basin    = boundary # True / False
+        self.boundary_type     = None     # flow or stage
+        self.boundary_function = None     # scipy interpolate function
 
         # Rainfall station
         self.rain_station = None
@@ -97,7 +97,7 @@ class Basin:
             self.water_volume += wet_area * h
 
         if not self.water_volume :
-            self.water_volume = 1 # prevent division by 0 for salinity
+            self.water_volume = 1E12 # prevent division by 0 for salinity
             # why not just check for basin_boundary?
 
         # Set initial previous_volume to initial volume
@@ -187,10 +187,12 @@ class Basin:
             self.model.gui.Message( msg )
             return
 
+        var_units = constants.PlotVariableUnit # { var : unit }
+
         # Write the header
         header = 'Time,\t\t\t'
         for plotVariable in self.plot_variables.keys() :
-            header = header + plotVariable + ',\t'
+            header = header + plotVariable +' '+ var_units[ plotVariable ] +',\t'
         header = header.rstrip( ',\t' )
         fd.write( header + '\n' )
 
