@@ -90,10 +90,17 @@ class GUI:
     def FloridaBayModel_Tk ( self ) :
         '''User interface for the Florida Bay Model'''
 
-        icon = Tk.PhotoImage( file = self.model.args.path +\
-                                     'data/init/PyFBM_icon.png' )
+        icon = None
 
-        self.Tk_root.iconphoto( True, icon )
+        try :
+            icon = Tk.PhotoImage( file = self.model.args.path +\
+                                 'data/init/PyFBM_icon.png' )
+        except :
+            icon = Tk.PhotoImage( file = self.model.args.path +\
+                                 'data/init/PyFBM_icon.gif' )
+
+        if icon :
+            self.Tk_root.iconphoto( True, icon )
 
         # Create the main widget Frame (window) and a control frame
         mainframe    = ttk.Frame( self.Tk_root, padding = "3 3 3 3" )
@@ -661,7 +668,7 @@ class GUI:
 
         # Read the salinity .csv gauge data to get [times] and [data]
         if not self.model.salinity_data :
-            init.GetBasinSalinityData( self.model )
+            GetBasinSalinityData( self.model )
 
         # Get the data into times[] & data[]
         dataList = []
@@ -1183,7 +1190,10 @@ class GUI:
         edit_file = Tk.filedialog.askopenfilename(
             initialdir  = self.model.args.path,
             # initialfile = '', 
-            filetypes = [ ('Files', '*.csv'), ('Files', '*.txt') ],
+            filetypes = [ ('Data',   '*.csv'), 
+                          ('Source', '*.py' ),
+                          ('R',      '*.R'  ),
+                          ('All',    '*'    ) ],
             multiple  = False )
 
         if not edit_file :
