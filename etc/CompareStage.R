@@ -1,5 +1,38 @@
 
 source( '~/R/ReadData4EverCSV.R' )
+
+#------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------
+CompareStages2 = function(
+    delay     = 2,
+    #bam.path  =  '../data/out/out.May-1_Nov-1-2000/',
+    station.i = NULL,
+    starts    = c( rep( '2010-01-01', 20 ), '2015-05-01','2015-05-01' ),
+    ends      = rep( '2015-12-01', 22 ),
+    createPNG = FALSE
+) {
+  
+  CompareStages( delay     = delay,
+                 bam.path  = '../data/out/out.May-1_Nov-1-2000/',
+                 station.i = station.i,
+                 starts    = rep( '2000-5-1', 22),
+                 ends      = rep( '2000-11-1',22) )
+  
+  CompareStages( delay     = delay,
+                 bam.path  = '../data/out/out.May-1_Nov-1-2001/',
+                 station.i = station.i,
+                 starts    = rep( '2001-5-1', 22),
+                 ends      = rep( '2001-11-1',22) )
+
+  CompareStages( delay     = delay,
+                 bam.path  = '../data/out/out.May-1_Nov-1-2002/',
+                 station.i = station.i,
+                 starts    = rep( '2002-5-1', 22),
+                 ends      = rep( '2002-11-1',22) )
+  
+}
+
 #------------------------------------------------------------------------
 #
 #------------------------------------------------------------------------

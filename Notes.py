@@ -32,14 +32,12 @@ Rain     DailyRainFilled_cm_1999-9-1_2015-12-8.csv  1999-09-01  2015-12-08
 ET       PET_1999-9-1_2015-12-8.csv                 1999-09-01  2015-12-08
 Salinity DailySalinityFilled_1999-9-1_2015-12-8.csv 1999-09-01  2015-12-08
 Tide     HourlyTide1990_2020.tar.gz (See [1])       1990-01-01  2021-01-01
-Runoff   EDEN_Stage_Filled_OffsetMSL.csv (See [2])  1999-09-01  2015-12-08
+Runoff   EDEN_Stage_OffsetMSL.csv                   1999-09-01  2015-12-31
 
 [1] To speed up processing of tidal data initialization, tidal data are
     subsets of this span, i.e. 2010-01-01 through 2016-01-01. 
-
-[2] Everglades runoff stage is based on EDEN stage data, which ended 
-    2015-09-01. The last quarter is copied from 2007. 
     '''
+    pass
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------

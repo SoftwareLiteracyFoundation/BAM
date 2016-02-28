@@ -19,9 +19,14 @@ CompareSalinities = function(
                  rep( '../data/out/out.May-1_Nov-1-2001/', 21 ),
                  rep( '../data/out/out.May-1_Nov-1-2002/', 21 ) )
 
-  gauges = rep( c(
-      'MD', 'MB', 'LS', 'LB', 'BS', 'TC', 'LM', 'LM', 'BA', 'PK',
-      'LR', 'WB', 'GB', 'LR', 'JK', 'MK', 'BK', 'BN', 'DK', 'BN', 'TC' ), 3 )
+  gauges = rep( list(
+      c( 'MD', 'TP' ), c( 'MB' ), c( 'LS' ),
+      c( 'LB' ), c( 'BS' ),
+      c( 'TC', 'DK' ), c( 'LM' ), c( 'LM' ),
+      c( 'BA' ), c( 'PK' ),
+      c( 'LR', 'PK' ), c( 'WB' ), c( 'GB', 'BK' ), c( 'LR' ), c( 'JK' ),
+      c( 'MK', 'JK' ), c( 'BK' ), c( 'BN' ), c( 'DK', 'BS', 'LB' ),
+      c( 'BN' ), c( 'TC', 'DK' ) ), 3 )
 
   bam.files = rep( c(
       'Barnes Sound', 'Manatee Bay', 'Long Sound',
@@ -60,7 +65,7 @@ CompareSalinities = function(
 
     print( paste( bam.files[i] ) )
     
-    CompareSalinity( gauge      = gauges     [ i ],
+    CompareSalinity( gauges     = gauges     [ i ],
                      bam.path   = bam.paths  [ i ],
                      bam.file   = paste( bam.files[i], '.csv', sep='' ),
                      start      = starts     [ i ],
@@ -85,9 +90,9 @@ CompareSalinity = function(
    salinity.df   = NULL,
    salinity.path = '../data/Salinity/',
    salinity.file = 'DailySalinityFilled_1999-9-1_2015-12-8.csv',
-   gauge         = 'LS',
+   gauges        = list( c( 'TC', 'DK' ) ),
    bam.path      = '../data/out/out.May-1_Nov-1-2000/',
-   bam.file      = 'Long Sound.csv',
+   bam.file      = 'Deer Key.csv',
    start         = '2000-5-1',
    end           = '2000-11-1',
    bam.ylim      = c(0,40),
@@ -110,7 +115,7 @@ CompareSalinity = function(
                                    '%Y-%m-%d %H:%M:%S',
                                    tz = 'EST' ),
                                    origin = '1970-01-01' )
-
+  
   salt.df = read.csv( paste( salinity.path, salinity.file, sep = '' ),
                       header = TRUE, stringsAsFactors = FALSE )
 
@@ -125,6 +130,8 @@ CompareSalinity = function(
   else {
     par( mfrow = c( 2, 1 ) )
   }
+
+  salt.colors = c( 'red', 'darkgreen', 'brown', 'black' )
   
   if ( createPNG ) {
     nameExtension = paste( ' ', start, ' Runoff.png', sep = '' )
@@ -141,11 +148,30 @@ CompareSalinity = function(
   mtext( paste( 'BAM:', sub( '.csv', '', bam.file )), line = -1.5, cex = 1.5 )
   mtext( bam.note, line = -2.7, cex = 1.3 )
   mtext( paste( start, ' : ', end ), line = -1.5, cex = 1.3, side = 1 )
-
-  plot( salt.Date, salt.df[,gauge], col = 'red',
+  
+  plot( salt.Date, salt.df[ , gauges[[1]][1] ], col = salt.colors[1],
         type = 'l', lwd = 2, ylim = salinity.ylim, xlim = xlim,
         xlab = 'Date', ylab = 'Salinity (ppt)' )
-  mtext( substr( gauge, 1, 2 ), line = -1.5, cex = 1.5 )
+
+  if ( length( gauges[[1]] ) > 1 ) {
+    for ( j in 2 : length( gauges[[ 1 ]] ) ) {
+      lines( salt.Date, salt.df[ , gauges[[1]][j] ],
+             col = salt.colors[j], lwd = 2 )
+    }
+  }
+ 
+  if ( length( gauges ) > 1 ) {
+    for ( i in 2 : length( gauges ) ) {
+      for ( j in 1 : length( gauges[[ i ]] ) ) {
+      
+        lines( salt.Date, salt.df[ , gauges[[i]][j] ],
+               col = salt.colors[[i]], lwd = 2 )
+      }
+    }
+  }
+
+  legend( 'top', legend = unlist( gauges ), col = salt.colors,
+          lwd = 6, cex = 1.3, bty = 'n' )
   mtext( paste( start, ' : ', end ), line = -1.5, cex = 1.3, side = 1 )
 
   if ( createPNG ) {

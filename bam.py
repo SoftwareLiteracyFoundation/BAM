@@ -27,22 +27,20 @@ def main():
     '''See Notes.py and model.py
  
     To do:
-      Update Runoff data from EDEN for 4th quarter 2015
       Groundwater : include as Runoff?
       Salinity boundary timeseries for tidal boundary basins?
-      Rain : Some type of aggregation instead of gauge assignment?
       -------------------------------------------------------------
-      Add a non-gui option?
       Flush output files
-      Hardcoded boundary basins : read from config file
+      Add a non-gui option?
       Plot archived data with run id
       Add iteration count to output
-      Compute solute transport only at output interval?
       Replace shoal hydro dictionaries with explicitly indexed numpy arrays?
       Replace numeric lists with pre-allocated numpy arrays?
       Break the Run() out into a multiprocess with queue or pipe comms : Pause
       Redo shapefile/init files to include new boundary basins
       Remove phantom shoals that don't connect basins
+      Hardcoded boundary basins : read from config file
+      Add Help (Notes.py __doc__ etc...)
     '''
 
     args = ParseCmdLine()
@@ -55,7 +53,7 @@ def main():
     # Basins and Shoals maps
     model = bam_model.Model( root, args )
     
-    # Create the GUI
+    # Create GUI
     model.gui = gui.GUI( root, model )
     model.gui.FloridaBayModel_Tk()
 
@@ -178,10 +176,10 @@ def ParseCmdLine():
     parser.add_argument('-bR', '--basinStageRunoff',
                         dest    = 'basinStageRunoff', type = str, 
                         action  = 'store', 
-                        default = 'data/Runoff/EDEN_Stage_Filled_OffsetMSL.csv',
+                        default = 'data/Runoff/EDEN_Stage_OffsetMSL.csv',
                         help    = 'Daily runoff EDEN stage data file: ' +\
                                   '-bF data/Runoff/' +\
-                                  'EDEN_Stage_Filled_OffsetMSL.csv' )
+                                  'EDEN_Stage_OffsetMSL.csv' )
 
     parser.add_argument('-bS', '--basinStageRunoffMap',
                         dest    = 'basinStageRunoffMap', type = str, 
@@ -197,6 +195,12 @@ def ParseCmdLine():
                                   'PET_1999-9-1_2015-12-8.csv',
                         help    = 'PET data file: -et ' +\
                                   'data/ET/PET_1999-9-1_2015-12-8.csv' )
+
+    parser.add_argument('-es', '--ET scale',
+                        dest    = 'ET_scale', type = float, 
+                        action  = 'store', 
+                        default = 2,
+                        help    = 'Scale factor on global ET: -es 2' )
 
     parser.add_argument('-s', '--shoals',
                         dest    = 'shoalShapeFile', type = str, 

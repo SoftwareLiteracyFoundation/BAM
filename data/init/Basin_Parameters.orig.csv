@@ -1,0 +1,55 @@
+Basin, Name,         Rain Station,  Rain Scale, Salinity Station
+5,   Barnes Sound,             LB,   8,         MD
+6,   Manatee Bay,              HC,  15,         MB
+7,   Long Sound,               LS,  12,         LS
+8,   Little Blackwater Sound,  LB,   8,         LB
+9,   Blackwater Sound,         BS,   4,         BS
+10,  Tarpon,                   BS,   5,         None
+11,  Little Buttonwood Sound,  BS,   5,         None
+12,  Nest Keys,                BN,   5,         None
+13,  Joe Bay,                  TC,   5,         TC
+14,  Little Madeira Bay,       LM,   5,         LM
+15,  Black Betsy Keys,         LM,   5,         LM
+16,  Upper Cross Bank,         BN,   5,         None
+17,  Rock Harbor,              BN,   5,         None
+18,  Buttonwood Sound,         BN,   5,         None
+19,  Jimmie Key,               BA,   5,         None
+20,  Cotton Key,               BA,   5,         None
+21,  Captain Key,              BA,   5,         None
+22,  Russell Key,              BA,   5,         None
+23,  Crocodile Dragover,       WB,   5,         None
+24,  Madeira Bay,              LM,   5,         None
+25,  Terrapin Bay,             GB,   5,         None
+26,  End Key,                  WB,   5,         None
+27,  Calusa Keys,              WB,   5,         None
+28,  Spy Key,                  BA,   5,         None
+29,  Porpoise Lake,            BA,   6,         BA
+30,  Lignumvitae,              PK,  10,         PK
+31,  Long Key,                 PK,  10,         None
+32,  Twin Keys,                LR,   8,         LR
+33,  Corrine Key,              WB,  10,         None
+34,  Whipray,                  WB,  10,         WB
+35,  North Whipray,            WB,  10,         None
+36,  Rankin Bight,             GB,   5,         None
+37,  Rankin Lake,              GB,  10,         GB
+38,  Rabbit Key,               LR,  10,         LR
+39,  Johnson Key,              JK,  15,         JK
+40,  Catfish Key,              MK,   5,         MK
+41,  Snake Bight,              BK,  10,         BK
+42,  Conchie Channel,          MK,  10,         None
+43,  Ninemile Bank,            JK,   5,         None
+44,  Dildo Key Bank,           JK,   5,         None
+45,  Tavernier Creek,          BN,   5,         None
+46,  Butternut Key,            BN,   8,         BN
+47,  Duck Key,                 DK,   8,         DK
+48,  Manatee Keys,             BN,   5,         None
+49,  Swash Keys,               BN,   5,         BN
+50,  Deer Key,                 TC,   6,         TC
+51,  Eagle Key,                LM,   5,         None
+52,  Steamboat Channel,        BA,   5,         None
+53,  Arsenicker Keys,          PK,   5,         None
+54,  Sid Key,                  LR,   5,         None
+55,  Pelican Keys,             BK,   5,         None
+56,  Blue Bank,                JK,   5,         None
+57,  First National Bank,      JK,   5,         None
+58,  Sandy Key,                MK,   5,         None

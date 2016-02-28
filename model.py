@@ -49,7 +49,6 @@ class Model:
         # Data containers and maps
         self.times               = []     # array of datetimes
         self.record_variables    = []     # variables to plot/record
-        self.rain_stations       = dict() # { station : [basin numbers] }
         self.rain_data           = dict() # { (year,month,day) : {station:rain}}
         self.et_data             = dict() # { (year,month,day) : pet }
         self.runoff_stage_basins = dict() # { Basin : EDEN station } -bS
@@ -57,13 +56,12 @@ class Model:
         self.runoff_stage_shoals = dict() # { Basin : [ Shoal ] }
         self.runoff_flow_basins  = []     # [ Basin ] -bF
         self.runoff_flow_data    = dict() # {(year,month,day):{basin_num:flow}}
-        self.salinity_stations   = dict() # { station : [basin numbers] }
         self.salinity_data       = odict()# { (year,month,day) : {station:ppt} }
         self.fixed_boundary_cond = dict() # { basin_num : (type, value) }
         self.timeseries_boundary = dict() # { basin : ??? } Not implemented
         self.seasonal_MSL_splrep = None   # scipy spline representation 
         self.seasonal_MSL        = 0      # value at current time
-        self.salinity_gauge_data = None   # readlines [] from salinityFile
+        self.salinity_stations   = []     # [ gauge IDs ]
 
         # Convert -S -E args into start_time, end_time datetime objects
         self.GetStartStopTime()
@@ -299,10 +297,15 @@ class Model:
             if Basin.boundary_basin is True :
                 continue
 
-            rain_cm_day = station_rain_map[ Basin.rain_station ] * \
-                          Basin.rain_scale
+            rain_cm_day = 0
 
-            rain_volume_day = rain_cm_day / 100 * Basin.area
+            # JP instead of aggregating here, do in init?
+            # Accumulate scaled rain from stations
+            for rain_station, scale in zip( Basin.rain_stations, 
+                                            Basin.rain_scales ) :
+                rain_cm_day += station_rain_map[ rain_station ] * scale
+
+            rain_volume_day = ( rain_cm_day / 100 ) * Basin.area
 
             rain_volume_t   = rain_volume_day / self.timestep_per_day
 
@@ -328,7 +331,8 @@ class Model:
             if Basin.boundary_basin is True :
                 continue
 
-            et_volume_day = et_mm_day / 1000 * Basin.area
+            et_volume_day = ( et_mm_day / 1000 ) * Basin.area * \
+                            self.args.ET_scale
 
             et_volume_t   = et_volume_day / self.timestep_per_day
 
@@ -474,7 +478,9 @@ class Model:
             Basin = self.Basins[ basin_num ]
 
             if type_value_tuple[ 0 ] == 'flow' :
-                Basin.water_volume += float( type_value_tuple[ 1 ] )
+                bc_vol = float( type_value_tuple[ 1 ] ) * self.timestep
+                Basin.water_volume += bc_vol
+
             elif type_value_tuple[ 0 ] == 'stage' :
                 Basin.water_level = float( type_value_tuple[ 1 ] )
 

@@ -311,7 +311,7 @@ def GetBasinParameters( model ):
             print( basin_num, ' : ', Basin.name )
 
     # The csv file has 5 columns, 1 = basin number, 2 = basin name
-    # 3 = Rain station, 4 = Rain scale, 5 = Salinity station
+    # 3 = [ Rain stations ], 4 = [ Rain scales ], 5 = Salinity station
     # first row is header
     fd   = open( model.args.path + model.args.basinParameters, 'r' )
     rows = fd.readlines()
@@ -336,85 +336,52 @@ def GetBasinParameters( model ):
                      ' does not have column ', valid_column
             raise Exception( errMsg )
 
-    # JP : default rain & salinity station maps are Hardcoded... Bogus!
-    # Map of rain gauge stations with a list of affected basins
-    # rain_station = { gauge : [basin numbers] }
-    model.rain_stations = { 
-        'BK' : [], 'BA' : [], 'BN' : [], 'BS' : [], 'DK' : [], 'GB' : [],
-        'HC' : [], 'JK' : [], 'LB' : [], 'LM' : [], 'LR' : [], 'LS' : [],
-        'MK' : [], 'PK' : [], 'TC' : [], 'TR' : [], 'WB' : [] }
-    
-    # Map of salinity stations with a list of affected basins
-    # salinity_station = { gauge : [basin numbers] }
-    model.salinity_stations = { 
-        'BK' : [], 'BA' : [], 'BN' : [], 'BS' : [], 'DK' : [], 'GB' : [],
-        'HC' : [], 'JK' : [], 'LB' : [], 'LM' : [], 'LR' : [], 'LS' : [],
-        'MK' : [], 'PK' : [], 'TC' : [], 'TR' : [], 'WB' : [], 'MD' : [],
-        'TP' : [], 'MB' : [] }
-
     # Process each row of data, skip the header
     for i in range( 1, len( rows ) ) :
         row   = rows[ i ]
         words = row.split( ',' )
 
-        basin_num    = int( words[ var_column_map[ 'Basin' ] ] )
-        basin_name   =      words[ var_column_map[ 'Name' ] ].strip()
-        rain_station =      words[ var_column_map[ 'Rain Station' ] ].strip()
-        rain_scale   =float(words[ var_column_map[ 'Rain Scale' ] ].strip() )
-        salinity_station =  words[ var_column_map['Salinity Station']].strip()
+        # Get the Basin object
+        basin_num  = int( words[ var_column_map[ 'Basin' ] ] )
+        basin_name =      words[ var_column_map[ 'Name'  ] ].strip()
 
         if basin_num not in model.Basins.keys() :
             errMsg = 'GetBasinParameters: Failed to find basin ' +\
                      basin_name + ' number: ', basin_num
             raise Exception( errMsg )
 
+        Basin = model.Basins[ basin_num ]
+
+        # Add list of rain stations and scales to the Basin object
+        rain_stations = \
+            words[ var_column_map[ 'Rain Station' ] ].strip('[] ').split()
+
+        _rain_scales = \
+            words[ var_column_map[ 'Rain Scale' ] ].strip('[] ').split()
+
+        rain_scales = list( map( float, _rain_scales ) )
+
         if not model.args.noRain :
-            if rain_station not in model.rain_stations.keys() :
-                errMsg = 'GetBasinParameters: Failed to find rain station'+\
-                          rain_station
-                raise Exception( errMsg )
+            Basin.rain_stations = rain_stations
+            Basin.rain_scales   = rain_scales
 
-            model.rain_stations[ rain_station ].append( basin_num )
-
-            Basin = model.Basins[ basin_num ]
-            Basin.rain_scale = rain_scale
+        # Add salinity station to the Basin
+        salinity_station = words[ var_column_map['Salinity Station']].strip()
 
         if model.args.gaugeSalinity or \
            model.args.salinityInit.lower() == 'yes' :
 
             if salinity_station == 'None' :
                 pass
-
-            elif salinity_station not in model.salinity_stations.keys() :
-                errMsg = 'GetBasinParameters: Failed to find salinity ' +\
-                         'station ' + salinity_station
-                raise Exception( errMsg )
-
             else :
-                model.salinity_stations[ salinity_station ].append(basin_num)
+                Basin.salinity_station = salinity_station
+                if model.args.gaugeSalinity :
+                    Basin.salinity_from_data = True
 
-
-    # Populate the basin.rain_station variables
-    if not model.args.noRain :
-        for rain_station, basinList in model.rain_stations.items() :
-            for basin in basinList :
-                model.Basins[ basin ].rain_station = rain_station
-
-    # Populate the basin.salinity_station variables
-    if model.args.gaugeSalinity :
-        for salinity_station, basinList in model.salinity_stations.items():
-            for basin in basinList :
-                model.Basins[ basin ].salinity_station = salinity_station
-                model.Basins[ basin ].salinity_from_data = True
-
-
-    if model.args.DEBUG_ALL and not model.args.noRain :
-        print( 'rain_stations:' )
-        print( model.rain_stations )
-
-    if model.args.DEBUG_ALL and model.args.gaugeSalinity :
-        print( 'salinity_stations:' )
-        print( model.salinity_stations )
+        if model.args.DEBUG_ALL :
+            print( Basin.name, ' [', Basin.number, ']' )
+            print( '\t', Basin.rain_stations, ' : ', Basin.rain_scales )
+            print( '\t', Basin.salinity_station )
 
 #----------------------------------------------------------------
 # 
@@ -668,12 +635,11 @@ def GetBasinSalinityData( model ):
         return
 
     # Create list of station names in the order of the header/columns
-    stations = []
     words = rows[ 0 ].split(',')
 
     for i in range( 1, len( words ) ) :  # Skip the time column
         word = words[ i ].strip()
-        stations.append( word.strip('"') )
+        model.salinity_stations.append( word.strip('"') )
 
     # Create list of datetimes
     dates = []
@@ -708,10 +674,11 @@ def GetBasinSalinityData( model ):
         station_salinity = dict()
 
         for j in range( 1, len( words ) ) :
-            station_salinity[ stations[ j-1 ] ] = float( words[ j ] )
+            station_salinity[ model.salinity_stations[ j-1 ] ] = \
+                float( words[ j ] )
                 
         date = dates[ i ]
-        key = ( date.year, date.month, date.day )
+        key  = ( date.year, date.month, date.day )
 
         model.salinity_data[ key ] = station_salinity
         
@@ -734,12 +701,11 @@ def SetInitialBasinSalinity( model ) :
 
     station_salinity_map = model.salinity_data[ key ]
         
-    for station, basinList in model.salinity_stations.items() :
-
-        for basin_num in basinList :
-            Basin = model.Basins[ basin_num ]
-            Basin.salinity = station_salinity_map[ station ]
-                
+    for Basin in model.Basins.values() :
+        if not Basin.boundary_basin :
+            if Basin.salinity_station :
+                Basin.salinity = station_salinity_map[ Basin.salinity_station ]
+        
             if model.args.DEBUG_ALL :
                 print( Basin.name, ' [', str( Basin.number ),
                        '] : ', Basin.salinity )

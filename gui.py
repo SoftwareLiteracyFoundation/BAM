@@ -616,7 +616,7 @@ class GUI:
         # The listvariable = [] option won't work if
         # there is whitespace in a name, so insert them manually
         i = 1
-        for gauge in sorted( self.model.salinity_stations.keys() ) :
+        for gauge in sorted( self.model.salinity_stations ) :
             self.gaugeListBox.insert( i, '        ' + gauge )
             i = i + 1
 
@@ -629,7 +629,7 @@ class GUI:
         self.gaugeListBox.configure( yscrollcommand = scrollBar.set )
 
         # Colorize alternating lines of the listbox
-        for i in range( 0, len( self.model.salinity_stations.keys() ), 2):
+        for i in range( 0, len( self.model.salinity_stations ), 2):
             self.gaugeListBox.itemconfigure( i, background = '#f0f0ff' )
 
         # Can use pack here since this is a standalone widget that

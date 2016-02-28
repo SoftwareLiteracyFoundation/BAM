@@ -57,11 +57,11 @@ class Basin:
         self.boundary_type     = None     # flow or stage
         self.boundary_function = None     # scipy interpolate function
 
-        # Rainfall station
-        self.rain_station = None
-        self.rain_scale   = None # Factor for rain volume calibration
+        # Rainfall stations
+        self.rain_stations = None # List of rain gauge ID's
+        self.rain_scales   = None # Factors for rain volume calibration
 
-        # Salinity station and salinity set from data flag
+        # Salinity station and flag if salinity set from data
         self.salinity_station   = None
         self.salinity_from_data = False
 

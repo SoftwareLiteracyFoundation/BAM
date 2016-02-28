@@ -4,8 +4,8 @@
 # 
 #--------------------------------------------------------------------
 CreateStageCSV = function(
-    file    = 'EDEN_Stage_Filled.txt',
-    csvFile = 'EDEN_Stage_Filled_OffsetMSL.csv',
+    file    = 'EDEN_Stage.txt',  # EDEN water surface (m) NAVD88
+    csvFile = 'EDEN_Stage_OffsetMSL.csv',
     ylim    = c( -0.7, 0.6 ),
     start   = '1999-9-1',
     end     = '2015-12-08',
@@ -59,7 +59,8 @@ CreateStageCSV = function(
 #--------------------------------------------------------------------
 # 
 #--------------------------------------------------------------------
-ReadStage = function( file   = 'EDEN_Stage_Filled.txt',
+ReadStage = function( file   = 'EDEN_Stage.txt',
+                                # EDEN water surface (m) NAVD88
                       ylim   = c( -0.6, 0.5 ),
                       MSL    = -0.148,  # MSL = -14.8 cm NAVD
                       offset = TRUE,
@@ -111,7 +112,7 @@ ReadStage = function( file   = 'EDEN_Stage_Filled.txt',
 # 
 #--------------------------------------------------------------------
 PlotStage = function(
-    file = 'EDEN_Stage_Filled_OffsetMSL.Rdata',
+    file = 'EDEN_Stage_OffsetMSL.Rdata',
     ylim = c( -0.7, 0.6 ),
     start = '1999-7-1',
     end   = '2015-12-08',
