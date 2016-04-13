@@ -13,7 +13,8 @@ from   tkinter import messagebox
 from   tkinter import ttk # tk themed widgets
 
 # Community modules
-from numpy import linspace
+from numpy import linspace, isnan
+from numpy import all as npall
 from numpy import NaN as npNaN
 
 from matplotlib.colors   import ListedColormap
@@ -36,6 +37,8 @@ from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
 # Local modules 
 from init import InitTimeBasins
 from init import GetBasinSalinityData
+from init import GetBasinStageData
+from init import GetTimeIndex
 import constants
 
 #---------------------------------------------------------------
@@ -115,8 +118,9 @@ class GUI:
                                                  frameon = False, 
                                                  axisbg  = 'none' )
         
-        self.figure_axes.set_xlim( ( 489000,  569000  ) )
-        self.figure_axes.set_ylim( ( 2740000, 2799000 ) )
+        # Map limits are UTM Zone 17R in (m)
+        self.figure_axes.set_xlim( ( 490000,  569000  ) )
+        self.figure_axes.set_ylim( ( 2742000, 2799000 ) )
 
         self.canvas = FigureCanvasTkAgg( self.figure, master = mainframe )
 
@@ -251,10 +255,18 @@ class GUI:
         plotArchiveButton = ttk.Button( controlframe, text = "Plot Disk",
                                         command = self.PlotArchiveData )
 
-        # Button for model.PlotGaugeData()
-        plotGaugeButton = ttk.Button( controlframe, text = "Plot Gauge",
-                                      command = self.PlotGaugeData )
-
+        # Button for PlotGaugeSalinityData()
+        # Can't set text color in ttk Button, use standard Tk
+        plotGaugeSalinityButton = Tk.Button( controlframe, text = "Salinity",
+                                     command = self.PlotGaugeSalinityData,
+                                     foreground = 'blue' )
+        
+        # Button for PlotGaugeStageData()
+        # Can't set text color in ttk Button, use standard Tk
+        plotGaugeStageButton = Tk.Button( controlframe, text = "Stage",
+                                     command = self.PlotGaugeStageData,
+                                     foreground = 'blue' )
+        
         #-------------------------------------------------------------------
         # Setup the window layout with the 'grid' geometry manager. 
         # The value of the "sticky" option is a string of 0 or more of the 
@@ -268,7 +280,7 @@ class GUI:
         #-------------------------------------------------------------------
         # Grid all the widgets - This is the layout of the window
         # This application has 5 columns and 4 rows
-        # The middle row has the controlframe with its own grid manager
+        # Column 1 row 1 has the controlframe with its own grid manager
         #           col 0     |    col 1     |   col 2    |   col 3  |  col 4
         # row 0   Basin List  |    <-----------   Message Text  ----------->  
         # row 1       \/      |   Controls   | Model Time |  Start   |  End 
@@ -292,16 +304,31 @@ class GUI:
         self.startTimeEntry.grid ( column = 3, row = 1 )
         self.endTimeEntry.grid   ( column = 4, row = 1 )
         
+        #-------------------------------------------------------------
         # controlframe.grid is set above
-        self.mapOptionMenu.grid  ( in_ = controlframe, row = 0 )
-        initButton.grid          ( in_ = controlframe, row = 1 )
-        runButton.grid           ( in_ = controlframe, row = 2 )
-        #pauseButton.grid         ( in_ = controlframe, row = 3 )
-        recordVarButton.grid     ( in_ = controlframe, row = 4 )
-        self.plotOptionMenu.grid ( in_ = controlframe, row = 5 )
-        plotRunButton.grid       ( in_ = controlframe, row = 6 )
-        plotArchiveButton.grid   ( in_ = controlframe, row = 7 )
-        plotGaugeButton.grid     ( in_ = controlframe, row = 8 )
+        self.mapOptionMenu.grid( in_ = controlframe, row = 0 )
+        initButton.grid        ( in_ = controlframe, row = 1 )
+        runButton.grid         ( in_ = controlframe, row = 2 )
+        #pauseButton.grid       ( in_ = controlframe, row = 3 )
+        recordVarButton.grid   ( in_ = controlframe, row = 4 )
+
+        ttk.Separator( orient = Tk.HORIZONTAL ).grid( in_ = controlframe, 
+                                                      row = 5, pady = 5,
+                                                      sticky = (Tk.E,Tk.W) )
+
+        self.plotOptionMenu.grid( in_ = controlframe, row = 6 )
+        plotRunButton.grid      ( in_ = controlframe, row = 7 )
+        plotArchiveButton.grid  ( in_ = controlframe, row = 8 )
+
+        ttk.Separator( orient = Tk.HORIZONTAL ).grid( in_ = controlframe, 
+                                                      row = 9, pady = 5,
+                                                      sticky = (Tk.E,Tk.W) )
+
+        plotGaugeSalinityButton.grid( in_ = controlframe, row = 10,
+                                      sticky = (Tk.E,Tk.W) )
+        plotGaugeStageButton.grid   ( in_ = controlframe, row = 11,
+                                      sticky = (Tk.E,Tk.W) )
+        #-------------------------------------------------------------
         
         self.canvas.get_tk_widget().grid ( column = 2, row = 2, 
                                            columnspan = 3, rowspan = 2,
@@ -341,7 +368,6 @@ class GUI:
         # MapPlotVarUpdate() will refresh the legend on mapPlotVariable changes
         self.mapPlotVariable.trace( 'w', self.MapPlotVarUpdate )
 
-        self.RenderBasins( init = True )
         self.RenderShoals( init = True )
         self.PlotLegend()
         self.canvas.show()
@@ -491,15 +517,15 @@ class GUI:
         dataList   = []
         basinNames = []
 
-        for basin in BasinList :
-            if plotVariable not in basin.plot_variables.keys() :
+        for Basin in BasinList :
+            if plotVariable not in Basin.plot_variables.keys() :
                 msg = '\nPlotRunData: ' + plotVariable + ' data ' +\
-                      'is not present for basin ' + basin.name + '.\n'
+                      'is not present for basin ' + Basin.name + '.\n'
                 self.Message( msg )
                 return
 
-            dataList.append( basin.plot_variables[ plotVariable ] )
-            basinNames.append( basin.name )
+            dataList.append( Basin.plot_variables[ plotVariable ] )
+            basinNames.append( Basin.name )
 
         self.PlotData( self.model.times, dataList, basinNames, plotVariable,
                        period_record_days = self.model.simulation_days )
@@ -527,6 +553,7 @@ class GUI:
             print( self.plot_dir )
 
         # Get the data into 
+        all_times  = []
         times      = []
         basinNames = []
         dataList   = []
@@ -534,12 +561,12 @@ class GUI:
         # Get the plotVariable type from the plotOptionMenu
         plotVariable = self.plotVariable.get()
 
-        for basin in BasinList :
+        for Basin in BasinList :
 
-            basinNames.append( basin.name )
+            basinNames.append( Basin.name )
 
             # Read the basin .csv data to get [times] and [data]
-            file_name = self.plot_dir + '/' + basin.name + '.csv'
+            file_name = self.plot_dir + '/' + Basin.name + '.csv'
             try :
                 fd = open( file_name, 'r' )
             except OSError as err :
@@ -557,10 +584,12 @@ class GUI:
             for i in range( len( variables ) ) :
                 variables[ i ] = variables[ i ].strip()
 
+            # column index for Time
             time_col_i = variables.index( 'Time' )
 
+            # column index for plotVariable
             try :
-                unit_str = constants.PlotVariableUnit[ plotVariable ]
+                unit_str   = constants.PlotVariableUnit[ plotVariable ]
                 data_col_i = variables.index( plotVariable + ' ' + unit_str )
 
             except ValueError as err :
@@ -568,15 +597,25 @@ class GUI:
                 self.Message( msg )
                 return
 
-            data = []
-
-            for i in range( 1, len( rows ) ) :
-                words = rows[ i ].split(',')
-
-                if basin == BasinList[ 0 ] : # only need one instance times
-                    time_i = datetime.strptime( words[ 0 ].strip(),
+            # Get all times in file from first Basin in BasinList
+            if Basin == BasinList[ 0 ] :
+                for i in range( 1, len( rows ) ) :
+                    words  = rows[ i ].split(',')
+                    time_i = datetime.strptime( words[ time_col_i ].strip(),
                                                 '%Y-%m-%d %H:%M:%S' )
-                    times.append( time_i )
+                    all_times.append( time_i )
+
+                # Find index in dates for start_time & end_time
+                start_i, end_i = GetTimeIndex( plotVariable, all_times,
+                                               self.model.start_time, 
+                                               self.model.end_time )
+
+            # Populate only data needed for the simulation timeframe
+            times = all_times[ start_i : end_i + 1 ]
+            data  = []
+            for i in range( start_i, end_i + 1 ) :
+                row   = rows[ i + 1 ]
+                words = row.split(',')
 
                 value_string = words[ data_col_i ]
 
@@ -585,7 +624,13 @@ class GUI:
                 else :
                     data.append( float( value_string ) )
 
-            dataList.append( data )
+            # If data is all NA don't plot
+            if npall( isnan( data ) ) :
+                msg = "\nPlotArchiveData: " + plotVariable + ' for basin ' +\
+                      Basin.name + ' does not exist.\n'
+                self.Message( msg )
+            else :
+                dataList.append( data )
 
         period_record = times[ len( times ) - 1 ] - times[ 0 ] # timedelta
 
@@ -596,107 +641,123 @@ class GUI:
     #----------------------------------------------------------------
     # 
     #----------------------------------------------------------------
-    def PlotGaugeData( self ) :
+    def PlotGaugeSalinityData( self ) :
         '''Plot salinity data from gauge observations.'''
 
         if self.model.args.DEBUG :
-            print( '-> PlotGaugeData', flush = True )
+            print( '-> PlotGaugeSalinityData', flush = True )
 
-        # Get a list of gauges from a Listbox
-        # A top level pop up widget
-        top = Tk.Toplevel()
-        top.title( 'Gauges' ) 
+        BasinList = self.GetBasinListbox()
 
-        # Gauge Listbox
-        self.gaugeListBox = Tk.Listbox( top, height = 20, width = 12, 
-                                        selectmode = Tk.EXTENDED,
-                                        font = constants.textFont )
-
-        # Insert gauges into the Listbox
-        # The listvariable = [] option won't work if
-        # there is whitespace in a name, so insert them manually
-        i = 1
-        for gauge in sorted( self.model.salinity_stations ) :
-            self.gaugeListBox.insert( i, '        ' + gauge )
-            i = i + 1
-
-        # Create a vertical scroll bar for the Listbox
-        # Call the Listbox yview func when the user moves the scrollbar
-        scrollBar = ttk.Scrollbar( top, orient = Tk.VERTICAL, 
-                                   command = self.gaugeListBox.yview )
-
-        # Tell the Listbox it will scroll according to the scrollBar
-        self.gaugeListBox.configure( yscrollcommand = scrollBar.set )
-
-        # Colorize alternating lines of the listbox
-        for i in range( 0, len( self.model.salinity_stations ), 2):
-            self.gaugeListBox.itemconfigure( i, background = '#f0f0ff' )
-
-        # Can use pack here since this is a standalone widget that
-        # doesn't interact with a grid geometry
-        scrollBar.pack( side = Tk.LEFT, expand = True, fill = Tk.Y )
-        self.gaugeListBox.pack( side = Tk.RIGHT, expand = True, fill = Tk.BOTH )
-
-        # Tell Listbox to call ProcessGaugeListbox()
-        self.gaugeListBox.bind( '<<ListboxSelect>>', self.ProcessGaugeListbox )
-
-    #----------------------------------------------------------------
-    # 
-    #----------------------------------------------------------------
-    def ProcessGaugeListbox( self, *args ):
-        '''Read the gauge listbox selection, Plot the selected data.'''
-
-        # This function clears the basin listbox selection, but calling
-        # self.GetBasinListbox(): self.basinListBox.selection_get() returns
-        # the self.gaugeListBox.selection_get()... ???
-
-        # \n separated items in one string
-        selected = self.gaugeListBox.selection_get()
-
-        gaugeList = selected.split( '\n' ) # A list of strings
-
-        if self.model.args.DEBUG_ALL:
-            print( '-> ProcessGaugeListbox() ', len( gaugeList ), '\n',
-                   gaugeList, flush = True )
-
-        if len( gaugeList ) == 0 :
-            msg = '\nPlotGaugeData: No gauges are selected.\n'
+        if len( BasinList ) == 0 :
+            msg = '\nPlotGaugeSalinityData: No basins are selected.\n'
             self.Message( msg )
             return
 
-        plotVariable = gaugeList[ 0 ].strip()  # JP multiple selections?
+        basin_names = [ Basin.name for Basin in BasinList ]
 
         # Read the salinity .csv gauge data to get [times] and [data]
         if not self.model.salinity_data :
             GetBasinSalinityData( self.model )
 
-        # Get the data into times[] & data[]
-        dataList = []
+        # plotVariables are salinity stations IDs : 'MD', 'GB'...
+        plotVariables = []
+        for Basin in BasinList :
+            if Basin.salinity_station :
+                plotVariables.append( Basin.salinity_station )
 
+        # Get times[] from model.salinity_data.keys()
         times = [ datetime( year  = key_tuple[0], 
                             month = key_tuple[1], 
                             day   = key_tuple[2] )
                   for key_tuple in self.model.salinity_data.keys() ]
 
-        data = []
-        for key in self.model.salinity_data.keys() :
-            data.append( self.model.salinity_data[ key ][ plotVariable ] )
+        # Get data
+        dataList = []
+        for plotVariable in plotVariables :
+            data = []
+            for key in self.model.salinity_data.keys() :
+                data.append( self.model.salinity_data[key][plotVariable] )
+            dataList.append( data )
 
-        if not data :
-            msg = 'Salinity gauge data is daily, POR not long enough.\n'
+        if not dataList :
+            msg = 'No salinity gauge data for these basins.\n'
             self.Message( msg )
             return
 
-        dataList.append( data )
+        period_record = times[ -1 ] - times[ 0 ] # timedelta
+
+        self.PlotData( times, dataList,
+                       basinNames         = basin_names,
+                       plotVariable       = 'Salinity',
+                       period_record_days = period_record.days,
+                       title              = 'Gauge: ',
+                       path  = ' from: ' + self.model.args.salinityFile )
+
+
+    #----------------------------------------------------------------
+    # 
+    #----------------------------------------------------------------
+    def PlotGaugeStageData( self ) :
+        '''Plot stage data from gauge observations.'''
+
+        if self.model.args.DEBUG :
+            print( '-> PlotGaugeStageData', flush = True )
+
+        BasinList = self.GetBasinListbox()
+
+        if len( BasinList ) == 0 :
+            msg = '\nPlotGaugeStageData: No basins are selected.\n'
+            self.Message( msg )
+            return
+
+        basin_names = [ Basin.name for Basin in BasinList ]
+
+        # Read the stage .csv gauge data to get [times] and [data]
+        if not self.model.stage_data :
+            GetBasinStageData( self.model )
+
+        # plotVariables are stations IDs : 'MD', 'GB'...
+        # which are the same as the salinity_station
+        plotVariables = []
+        for Basin in BasinList :
+            if Basin.salinity_station :
+                plotVariables.append( Basin.salinity_station )
+
+        # Get times[] from model.salinity_data.keys()
+        times = [ datetime( year  = key_tuple[0], 
+                            month = key_tuple[1], 
+                            day   = key_tuple[2] )
+                  for key_tuple in self.model.stage_data.keys() ]
+
+        # Get data
+        dataList = []
+        for plotVariable in plotVariables :
+            data = []
+            for key in self.model.stage_data.keys() :
+                try :
+                    data.append( self.model.stage_data[ key ][ plotVariable ] )
+                except KeyError : 
+                    msg = 'No stage gauge data for ' + plotVariable + '.\n'
+                    self.Message( msg )
+                    break
+
+            if data :
+                dataList.append( data )
+
+        if not dataList :
+            msg = 'No stage gauge data for these basins.\n'
+            self.Message( msg )
+            return
 
         period_record = times[ -1 ] - times[ 0 ] # timedelta
 
-        self.PlotData( times, dataList, 
-                       basinNames = gaugeList, 
-                       plotVariable = 'Salinity',
+        self.PlotData( times, dataList,
+                       basinNames         = basin_names,
+                       plotVariable       = 'Stage',
                        period_record_days = period_record.days,
-                       title = 'Gauge: ',
-                       path  = ' from: ' + self.model.args.salinityFile )
+                       title              = 'Gauge: ',
+                       path  = ' from: ' + self.model.args.basinStage )
 
     #----------------------------------------------------------------
     # 
@@ -809,23 +870,25 @@ class GUI:
 
             basin_name = Basin.name
 
-            # Cheesey! Initialize basins with a random color
-            color = self.colors[ randint( 3, 6 ) ]
-
             if init :
-                PolygonList = self.figure_axes.fill( 
-                    basin_xy[:,0], basin_xy[:,1], 
-                    fc     = color, 
-                    ec     = 'white', 
-                    zorder = -1, 
-                    picker = True,
-                    label  = basin_name ) # NOTE: this is a list...!
+                # Initialize Basin.color with salinity color
+                Basin.SetBasinMapColor( 'Salinity', 
+                                        self.model.args.salinity_legend_bounds )
+                
+                if not Basin.Axes_fill : 
+                    PolygonList = self.figure_axes.fill( 
+                        basin_xy[:,0], basin_xy[:,1], 
+                        fc     = Basin.color, 
+                        ec     = 'white', 
+                        zorder = -1, 
+                        picker = True,
+                        label  = basin_name ) # NOTE: this is a list...!
 
-                Basin.Axes_fill = PolygonList[ 0 ] 
+                    Basin.Axes_fill = PolygonList[ 0 ] 
 
             else :
                 # Don't call fill() again if not init, it creates a new Polygon
-                Basin.Axes_fill.set_color( color )
+                Basin.Axes_fill.set_color( Basin.color )
 
     #----------------------------------------------------------------
     # 
@@ -930,8 +993,9 @@ class GUI:
 
         if self.model.args.DEBUG_ALL:
             print( '-> MouseClick' )
-            print( 'event.mouseevent: ', event.mouseevent )
-            print( 'event.artist: ',     event.artist     )
+            print( 'event.mouseevent: ',        event.mouseevent )
+            print( 'event.mouseevent.button: ', event.mouseevent.button )
+            print( 'event.artist: ',            event.artist     )
 
         left_click   = False
         middle_click = False

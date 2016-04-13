@@ -1,4 +1,19 @@
 
+Salt mass momentum
+
+1) Δt / tidal cycle = 6 min / 6 hr = 360 / (3600 * 6 ) = 0.01667
+
+2)  Distance of parcel over tidal cycle at p-p velocity:
+     v = 3  cm/s D_6.hr = 470  m
+     v = 5  cm/s D_6.hr = 760  m
+     v = 10 cm/s D_6.hr = 1540 m
+
+    L_b = sqrt( basin.area )
+    D_6.hr / L_b ~ 500 / 5000 ~ 0.1
+
+   L_b / S (kg/m^3) 
+
+
 ----------------------------------------------------------------
     Currently, multiprocess is used to parallelize reading and 
     interpolation of tidal boundary data. The code was reorganzed 

@@ -14,7 +14,7 @@ BasinMapPlotVariable = [ 'Salinity', 'Stage', 'Temperature', 'Phosphate',
 # Used to select basin variable for timeseries plots
 BasinPlotVariable = [ 'Salinity',   'Stage',       'Volume', 'Flow',
                       'Rain',       'Evaporation', 'Runoff', 'Groundwater',
-                      'Temperature','Phosphate', '  Nitrate','Ammonium',
+                      'Temperature','Phosphate',   'Nitrate','Ammonium',
                       'Oxygen' ]
 
 PlotVariableUnit = { 'Salinity'    : '(ppt)',    'Stage'       : '(m)',

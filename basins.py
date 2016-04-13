@@ -38,6 +38,7 @@ class Basin:
         self.water_volume    = 0          # (m^3)
         self.previous_volume = 0          # (m^3)
         self.salt_mass       = None       # (kg)
+        self.salt_factor     = 1          # ()
         self.salinity        = None       # (g/kg)
         self.temperature     = None       # (C)
 
@@ -273,6 +274,8 @@ class Basin:
             index = i
             if round( legend_value, 2 ) >= round( data_value, 3 ):
                 break
+
+        index = max( 0, index - 1 )
 
         if index >= len( self.model.gui.colors ) :
             index = len( self.model.gui.colors ) - 1

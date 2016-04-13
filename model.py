@@ -57,11 +57,13 @@ class Model:
         self.runoff_flow_basins  = []     # [ Basin ] -bF
         self.runoff_flow_data    = dict() # {(year,month,day):{basin_num:flow}}
         self.salinity_data       = odict()# { (year,month,day) : {station:ppt} }
+        self.stage_data          = odict()# { (year,month,day) : {station:ppt} }
         self.fixed_boundary_cond = dict() # { basin_num : (type, value) }
         self.timeseries_boundary = dict() # { basin : ??? } Not implemented
         self.seasonal_MSL_splrep = None   # scipy spline representation 
         self.seasonal_MSL        = 0      # value at current time
         self.salinity_stations   = []     # [ gauge IDs ]
+        self.stage_stations      = []     # [ gauge IDs ]
 
         # Convert -S -E args into start_time, end_time datetime objects
         self.GetStartStopTime()
@@ -449,16 +451,15 @@ class Model:
         if self.args.DEBUG_ALL :
             print( '\n-> GetSalinity', flush = True )
 
-        if not self.args.gaugeSalinity :
-            return
-
         station_salinity_map = self.salinity_data[ key ]
 
         for Basin in self.Basins.values() :
-            if Basin.boundary_basin is True :
-                continue
+            if Basin.boundary_basin :
+                if Basin.salinity_station :
+                    Basin.salinity = \
+                        station_salinity_map[ Basin.salinity_station ]
 
-            if Basin.salinity_from_data :
+            elif Basin.salinity_from_data :
                 Basin.salinity = station_salinity_map[ Basin.salinity_station ]
 
     #-----------------------------------------------------------

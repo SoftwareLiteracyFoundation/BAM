@@ -59,8 +59,8 @@ def LimitationNotes() :
     1) There are shoals with missing channels.
        The Keys are largely considered flow barriers, ignoring many channels.
     2) Evaporation is a single daily timeseries applied to the entire domain.
-    3) Rainfall is a sparse set of daily timeseries. Single gauge data is
-       applied to multiple basins and is not spatially weighted.
+    3) Rainfall is a sparse set of daily timeseries. Single or multiple 
+       gauges can be wieghted, summed, and applied to a basin.
     '''
     pass
 

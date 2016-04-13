@@ -89,6 +89,9 @@ def InitTimeBasins( model ):
     if model.args.gaugeSalinity and time_changed : # -gs
         GetBasinSalinityData( model )              # -sf
 
+    if time_changed :
+        GetBasinStageData( model ) # -bs
+
     if model.args.boundaryConditions :     # -bc
         GetBasinBoundaryCondition( model ) # -bf
 
@@ -112,6 +115,7 @@ def InitTimeBasins( model ):
           str( round( model.args.velocity_tol, 4 )) + ' (m/s)\n'
     model.gui.Message( msg )
 
+    model.gui.RenderBasins( init = True )
     model.gui.PlotLegend()
     model.gui.canvas.show()
 
@@ -311,7 +315,8 @@ def GetBasinParameters( model ):
             print( basin_num, ' : ', Basin.name )
 
     # The csv file has 5 columns, 1 = basin number, 2 = basin name
-    # 3 = [ Rain stations ], 4 = [ Rain scales ], 5 = Salinity station
+    # 3 = [ Rain stations ], 4 = [ Rain scales ], 5 = Salinity station,
+    # 6 = Salt factor
     # first row is header
     fd   = open( model.args.path + model.args.basinParameters, 'r' )
     rows = fd.readlines()
@@ -326,8 +331,8 @@ def GetBasinParameters( model ):
         var_column_map[ word ] = words.index( word )
             
     # Validate the file has the correct columns
-    valid_columns = [ 'Basin', 'Name', 'Rain Station',
-                      'Rain Scale', 'Salinity Station' ]
+    valid_columns = [ 'Basin', 'Name', 'Rain Gauge',
+                      'Rain Scale', 'Gauge', 'Salt Factor' ]
 
     for valid_column in valid_columns :
         if valid_column not in words :
@@ -354,22 +359,23 @@ def GetBasinParameters( model ):
 
         # Add list of rain stations and scales to the Basin object
         rain_stations = \
-            words[ var_column_map[ 'Rain Station' ] ].strip('[] ').split()
+            words[ var_column_map[ 'Rain Gauge' ] ].strip('[] ').split()
 
         _rain_scales = \
             words[ var_column_map[ 'Rain Scale' ] ].strip('[] ').split()
 
         rain_scales = list( map( float, _rain_scales ) )
 
-        if not model.args.noRain :
+        if not model.args.noRain and not Basin.boundary_basin :
             Basin.rain_stations = rain_stations
             Basin.rain_scales   = rain_scales
 
         # Add salinity station to the Basin
-        salinity_station = words[ var_column_map['Salinity Station']].strip()
+        salinity_station = words[ var_column_map['Gauge']].strip()
 
         if model.args.gaugeSalinity or \
-           model.args.salinityInit.lower() == 'yes' :
+           model.args.salinityInit.lower() == 'yes' or \
+           Basin.boundary_basin :
 
             if salinity_station == 'None' :
                 pass
@@ -377,6 +383,9 @@ def GetBasinParameters( model ):
                 Basin.salinity_station = salinity_station
                 if model.args.gaugeSalinity :
                     Basin.salinity_from_data = True
+
+        # Add salt factor to the Basin
+        Basin.salt_factor = float( words[ var_column_map['Salt Factor'] ] )
 
         if model.args.DEBUG_ALL :
             print( Basin.name, ' [', Basin.number, ']' )
@@ -619,11 +628,11 @@ def GetBasinSalinityData( model ):
     if model.args.DEBUG_ALL :
         print( '\n-> GetBasinSalinityData', flush = True )
 
-    # The csv file has 21 columns, 1 = YYYY-MM-DD
-    # 2 - 21 = Daily mean salinty at:
-    # BK, BA, BN, BS, DK, GB, HC, JK, LB, LM, LR, LS,
-    # MK, PK, TC, TR, WB, TP, MD, MB
-    # first row is header
+    # The csv file has 22 columns, 1 = YYYY-MM-DD
+    # 2 - 23 = Daily mean salinty at:
+    # BA, BK, BN, BS, DK, GB, HC, JK, LB, LM, LR, LS, MK,
+    # PK, TC, TR, WB, MB, MD, TP, Gulf_1, Ocean_1
+    # First row is header
     try :
         fd = open( model.args.path + model.args.salinityFile, 'r' )
         rows = fd.readlines()
@@ -631,15 +640,16 @@ def GetBasinSalinityData( model ):
 
     except OSError as err :
         msg = "\nGetBasinSalinityData: OS error: {0}\n".format( err )
-        model.Message( msg )
+        model.gui.Message( msg )
         return
 
     # Create list of station names in the order of the header/columns
-    words = rows[ 0 ].split(',')
+    if len( model.salinity_stations ) == 0 :
+        words = rows[ 0 ].split(',')
 
-    for i in range( 1, len( words ) ) :  # Skip the time column
-        word = words[ i ].strip()
-        model.salinity_stations.append( word.strip('"') )
+        for i in range( 1, len( words ) ) :  # Skip the time column
+            word = words[ i ].strip()
+            model.salinity_stations.append( word.strip('"') )
 
     # Create list of datetimes
     dates = []
@@ -700,15 +710,14 @@ def SetInitialBasinSalinity( model ) :
             model.start_time.day )
 
     station_salinity_map = model.salinity_data[ key ]
-        
+
     for Basin in model.Basins.values() :
-        if not Basin.boundary_basin :
-            if Basin.salinity_station :
-                Basin.salinity = station_salinity_map[ Basin.salinity_station ]
+        if Basin.salinity_station :
+            Basin.salinity = station_salinity_map[ Basin.salinity_station ]
         
-            if model.args.DEBUG_ALL :
-                print( Basin.name, ' [', str( Basin.number ),
-                       '] : ', Basin.salinity )
+        if model.args.DEBUG_ALL :
+            print( Basin.name, ' [', str( Basin.number ),
+                   '] : ', Basin.salinity )
 
     # recompute salt_mass for all basins
     for Basin in model.Basins.values() :
@@ -987,6 +996,93 @@ def GetBasinRunoffFlowData( model ):
             
     if model.args.DEBUG :
         print( model.runoff_flow_data )
+
+
+#----------------------------------------------------------------
+# 
+#----------------------------------------------------------------
+def GetBasinStageData( model ):
+    '''Read daily stage data (-bs)
+    Stage station to basin mappings are listed in the basinParameters
+    init file and stored in stage_stations{} in GetBasinParameters()
+    and are the same as the Salinity Gauge. 
+    This data is not used in the model, only for output comparison.
+    
+    Populate stage_data dictionary'''
+
+    if model.args.DEBUG_ALL :
+        print( '\n-> GetBasinStageData', flush = True )
+
+    # The csv file has 21 columns, 1 = YYYY-MM-DD
+    # 2 - 21 = Daily mean stage at:
+    # BK, BA, BN, BS, DK, GB, HC, JK, LB, LM, LR, LS,
+    # MK, PK, TC, TR, WB, TP, MD, MB
+    # first row is header
+    try :
+        fd = open( model.args.path + model.args.basinStage, 'r' )
+        rows = fd.readlines()
+        fd.close()
+
+    except OSError as err :
+        msg = "\nGetBasinStageData: OS error: {0}\n".format( err )
+        model.gui.Message( msg )
+        return
+
+    # Create list of station names in the order of the header/columns
+    if len( model.stage_stations ) == 0 :
+        words = rows[ 0 ].split(',')
+
+        for i in range( 1, len( words ) ) :  # Skip the time column
+            word = words[ i ].strip()
+            model.stage_stations.append( word.strip('"') )
+
+    # Create list of datetimes
+    dates = []
+    for i in range( 1, len( rows ) ) :
+        row   = rows[ i ]
+        words = row.split(',')
+        dates.append( strptime( words[ 0 ], '%Y-%m-%d' ) )
+
+    # Find index in dates for start_time & end_time
+    start_i, end_i = GetTimeIndex( 'Stage', dates, 
+                                   model.start_time, model.end_time )        
+
+    if model.args.DEBUG_ALL :
+        print( 'Stage data start: ', 
+                str( dates[ start_i ] ),str( start_i ), 
+                ' end: ', str( dates[ end_i   ] ),str( end_i ) )
+        print( rows[ start_i ] )
+        print( rows[ end_i ] )
+
+    # The stage_data is a nested dictionary intended to minimize
+    # dictionary key lookups to access stage for a 
+    # specific year month day. The key is an integer 3-tuple of
+    # ( Year, Month, Day ), values are a stage_salinity dictionary.
+    if model.stage_data :
+        model.stage_data.clear()
+
+    # Populate only data needed for the simulation timeframe
+    for i in range( start_i, end_i + 1 ) :
+        row   = rows[ i+1 ]
+        words = row.split(',')
+
+        station_stage = dict()
+
+        for j in range( 1, len( words ) ) :
+            if 'NA' in words[ j ].strip() :
+                stage = None
+            else :
+                stage = float( words[ j ] )
+
+            station_stage[ model.stage_stations[ j-1 ] ] = stage
+                
+        date = dates[ i ]
+        key  = ( date.year, date.month, date.day )
+
+        model.stage_data[ key ] = station_stage
+        
+    if model.args.DEBUG_ALL :
+        print( model.stage_data )
 
 #----------------------------------------------------------------
 # 

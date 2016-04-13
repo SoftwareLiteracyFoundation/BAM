@@ -134,10 +134,11 @@ CompareSalinity = function(
   salt.colors = c( 'red', 'darkgreen', 'brown', 'black' )
   
   if ( createPNG ) {
-    nameExtension = paste( ' ', start, ' Runoff.png', sep = '' )
+    nameExtension = paste( ' ', start, ' Salinity.png', sep = '' )
     png( filename = sub( '.csv', nameExtension, bam.file ),
         width = 1200, height = 800, units = "px",
         pointsize = 12, bg = "white", res = 150 )
+    par( mfrow = c( 2, 1 ) )
     par( mar   = c(3, 3, 0.5, 0.5)  )
     par( mgp   = c(1.7, 0.6, 0) )
   }

@@ -4,12 +4,9 @@ source( '~/R/ReadData4EverCSV.R' )
 #------------------------------------------------------------------------
 #
 #------------------------------------------------------------------------
-CompareStages2 = function(
+CompareStages.2000.2002 = function(
     delay     = 2,
-    #bam.path  =  '../data/out/out.May-1_Nov-1-2000/',
     station.i = NULL,
-    starts    = c( rep( '2010-01-01', 20 ), '2015-05-01','2015-05-01' ),
-    ends      = rep( '2015-12-01', 22 ),
     createPNG = FALSE
 ) {
   
@@ -17,19 +14,22 @@ CompareStages2 = function(
                  bam.path  = '../data/out/out.May-1_Nov-1-2000/',
                  station.i = station.i,
                  starts    = rep( '2000-5-1', 22),
-                 ends      = rep( '2000-11-1',22) )
+                 ends      = rep( '2000-11-1',22),
+                 createPNG = createPNG )
   
   CompareStages( delay     = delay,
                  bam.path  = '../data/out/out.May-1_Nov-1-2001/',
                  station.i = station.i,
                  starts    = rep( '2001-5-1', 22),
-                 ends      = rep( '2001-11-1',22) )
+                 ends      = rep( '2001-11-1',22),
+                 createPNG = createPNG )
 
   CompareStages( delay     = delay,
                  bam.path  = '../data/out/out.May-1_Nov-1-2002/',
                  station.i = station.i,
                  starts    = rep( '2002-5-1', 22),
-                 ends      = rep( '2002-11-1',22) )
+                 ends      = rep( '2002-11-1',22),
+                 createPNG = createPNG )
   
 }
 
@@ -177,7 +177,9 @@ CompareStage = function(
   }
 
   if ( createPNG ) {
-    png( filename = sub( '.csv', ' Stage.png', bam.file ),
+    png( filename = sub( '.csv',
+                         paste( ' Stage ', start, '.png', sep = '' ),
+                         bam.file ),
          width = 1200, height = 800, units = "px",
          pointsize = 12, bg = "white", res = 150 )
     par( mfrow = c( 2, 1 ) )

@@ -237,6 +237,9 @@ def MassTransport( model ) :
         
         Basin_A = Shoal.Basin_A
         Basin_B = Shoal.Basin_B
+
+        Basin_A_salt_factor = Basin_A.salt_factor
+        Basin_B_salt_factor = Basin_B.salt_factor
         
         #--------------------------------------------------------
         # Process each shoal depth that has non-zero wet_length 
@@ -323,10 +326,10 @@ def MassTransport( model ) :
         delta_salt_mass = source_salinity * delta_volume * 997
 
         if not Basin_A.boundary_basin :
-            Basin_A.salt_mass -= delta_salt_mass
+            Basin_A.salt_mass -= delta_salt_mass * Basin_A.salt_factor
 
         if not Basin_B.boundary_basin :
-            Basin_B.salt_mass += delta_salt_mass
+            Basin_B.salt_mass += delta_salt_mass * Basin_B.salt_factor
 
         if Basin_A.salt_mass < 0 :
             Basin_A.salt_mass = 0
@@ -356,21 +359,26 @@ def MassTransport( model ) :
             new_salinity = Basin.salt_mass / ( Basin.water_volume * 997 )
 
             # On shallow banks a low stage/volume can spike the salinity
-            # Log a message and ignore the new value
-            if new_salinity > 90 or new_salinity < 0 :
+            # Log a message
+            if new_salinity > 90 :
                 if Basin.name not in [ 'First National Bank', 
-                                       'Ninemile Bank',
-                                       'Conchie Channel',
+                                       'Ninemile Bank',  'Conchie Channel',
                                        'Johnson Key',    'Sandy Key',
                                        'Dildo Key Bank', 'Snake Bight', 
-                                       'Rankin Bight',   'Rankin Lake' ] :
+                                       'Rankin Bight',   'Rankin Lake',
+                                       'Deer Key',       'Swash Keys' ] :
                     msg = '*** MassTransport: Basin ' + Basin.name +\
-                          ' salinity: '  + str( round( new_salinity, 1 ) ) +\
+                          ' old salinity: ' + str( round( Basin.salinity, 1)) +\
+                          ' new salinity: ' + str( round( new_salinity, 1 ) ) +\
                           ' volume: '    + str( round( Basin.water_volume ) ) +\
-                          ' salt mass: ' + str( round( Basin.salt_mass ) ) +\
+                          ' salt mass: ' + str( round( Basin.salt_mass ) )    +\
                           ' at ' + str( model.current_time ) + '\n'
                     model.gui.Message( msg )
                     print( msg )
+
+                # Ignore the new salinity... 
+                # Play God and wish some salt away...
+                Basin.salt_mass = Basin.salt_mass * 0.9 # JP ???
 
             else :
                 Basin.salinity = new_salinity

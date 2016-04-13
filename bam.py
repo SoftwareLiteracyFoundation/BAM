@@ -27,11 +27,12 @@ def main():
     '''See Notes.py and model.py
  
     To do:
+      -------------------------------------------------------------
       Groundwater : include as Runoff?
-      Salinity boundary timeseries for tidal boundary basins?
       -------------------------------------------------------------
       Flush output files
-      Add a non-gui option?
+      Add a non-gui option
+      Change plot time units from model timestep (dt) to s, min, hr, day
       Plot archived data with run id
       Add iteration count to output
       Replace shoal hydro dictionaries with explicitly indexed numpy arrays?
@@ -187,6 +188,14 @@ def ParseCmdLine():
                         default = 'data/init/Basin_Runoff_Boundary.csv',
                         help    = 'Mapping of EDEN stage to basin: ' +\
                                   '-bS data/init/Basin_Runoff_Boundary.csv' )
+
+    parser.add_argument('-bs', '--basinStage',
+                        dest    = 'basinStage', type = str, 
+                        action  = 'store', 
+                        default = 'data/Stage/' +\
+                                  'DailyStage_1999-9-1_2016-3-1.csv',
+                        help  = 'Daily stage data file: -sf data/Stage/'+\
+                                'DailyStage_1999-9-1_2016-3-1.csv' )
 
     parser.add_argument('-et', '--ET',
                         dest    = 'ET', type = str, 
