@@ -101,8 +101,7 @@ def InitTimeBasins( model ):
     # basinInit file (-bi) with the closest gauge data as mapped in the 
     # basinParameter (-bp) file. 
     if model.args.salinityInit.lower() == 'yes' :
-        if not model.salinity_data :
-            GetBasinSalinityData( model )
+        GetBasinSalinityData   ( model ) 
         SetInitialBasinSalinity( model )
 
     # Report simulation parameters 
