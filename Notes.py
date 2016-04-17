@@ -69,16 +69,25 @@ def LimitationNotes() :
 def GeneralNotes() :
     '''
     To check mass balance turn off all normal inputs and 
-    specify a fixed flow into Blue Bank with -bc, a 60 s timestep and
-    all shoal mannings coefficients of 0.1 :
+    specify a fixed flow into Blue Bank with -fb of 1000 m^3/dt, 
+    t = 60 s timestep and all shoal mannings coefficients of 0.1 :
 
-    ./bam.py -t 60 -nt -nm -ne -nr -nR -bc -si 'n' -sm 0.1
+    ./bam.py -t 60 -E "2010-1-1 08:00" -nt -nm -ne -nr -nR -fb -si 'n' -sm 0.1
 
-    Blue Bank should then equilibriate to:
-     Stage: 0.03 (m)
-     Salinity: 11.41 (g/kg)
-     Volume: 0.0429 (km^3)
-     Shoal Flux: 100130.59 (m^3/t)
+    Blue Bank should then equilibriate over 8 hours to:
+
+    Blue Bank : dt = 60 s
+      Stage: 0.01 (m)
+      Salinity: 17.76 (g/kg)
+      Volume: 0.0425 (km^3)
+      Shoal Flux: 60294.74 (m^3/t)
+
+    For a more accurate rendition, run with -t 1 :
+    Blue Bank : dt = 1 s
+      Stage: 0.01 (m)
+      Salinity: 17.77 (g/kg)
+      Volume: 0.0425 (km^3)
+      Shoal Flux: 1000.0 (m^3/t)
 
     See etc/Notes.txt for mass balance calculation verification. 
 

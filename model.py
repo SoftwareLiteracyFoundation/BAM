@@ -54,12 +54,11 @@ class Model:
         self.runoff_stage_basins = dict() # { Basin : EDEN station } -bS
         self.runoff_stage_data   = dict() # {(year,month,day):{basin_num:stage}}
         self.runoff_stage_shoals = dict() # { Basin : [ Shoal ] }
-        self.runoff_flow_basins  = []     # [ Basin ] -bF
-        self.runoff_flow_data    = dict() # {(year,month,day):{basin_num:flow}}
         self.salinity_data       = odict()# { (year,month,day) : {station:ppt} }
         self.stage_data          = odict()# { (year,month,day) : {station:ppt} }
-        self.fixed_boundary_cond = dict() # { basin_num : (type, value) }
-        self.timeseries_boundary = dict() # { basin : ??? } Not implemented
+        self.fixed_boundary      = dict() # { basin_num : (type, value) }
+        self.dynamic_flow_boundary=dict() # { Basin : { (year,month,day):vol  }}
+        self.dynamic_head_boundary=dict() # { Basin : { (year,month,day):head }}
         self.seasonal_MSL_splrep = None   # scipy spline representation 
         self.seasonal_MSL        = 0      # value at current time
         self.salinity_stations   = []     # [ gauge IDs ]
@@ -128,28 +127,29 @@ class Model:
         #----------------------------------------------------------------
         # Set appropriate legend and data type for basin.SetBasinMapColor 
         # called for map plot updates below
-        mapPlotVariable = self.gui.mapPlotVariable.get()
+        if not self.args.noGUI :
+            mapPlotVariable = self.gui.mapPlotVariable.get()
 
-        legend_bounds = None
+            legend_bounds = None
 
-        if mapPlotVariable not in constants.BasinMapPlotVariable :
-            msg = 'Run Error: Invalid map plot variable, using Stage.\n'
-            self.gui.Message( msg )
-            mapPlotVariable = 'Stage'
-            legend_bounds   = self.args.stage_legend_bounds
+            if mapPlotVariable not in constants.BasinMapPlotVariable :
+                msg = 'Run Error: Invalid map plot variable, using Stage.\n'
+                self.gui.Message( msg )
+                mapPlotVariable = 'Stage'
+                legend_bounds   = self.args.stage_legend_bounds
 
-        if mapPlotVariable == 'Salinity' :
-            legend_bounds = self.args.salinity_legend_bounds
+            if mapPlotVariable == 'Salinity' :
+                legend_bounds = self.args.salinity_legend_bounds
 
-        elif mapPlotVariable == 'Stage' : 
-            legend_bounds = self.args.stage_legend_bounds
+            elif mapPlotVariable == 'Stage' : 
+                legend_bounds = self.args.stage_legend_bounds
 
-        else :
-            msg = 'Run Error: ', mapPlotVariable, \
-                  'not yet supported for map, showing Stage.\n'
-            self.gui.Message( msg )
-            mapPlotVariable = 'Stage'
-            legend_bounds   = self.args.stage_legend_bounds
+            else :
+                msg = 'Run Error: ', mapPlotVariable, \
+                      'not yet supported for map, showing Stage.\n'
+                self.gui.Message( msg )
+                mapPlotVariable = 'Stage'
+                legend_bounds   = self.args.stage_legend_bounds
 
         #-----------------------------------------------------
         # Setup start time and status
@@ -189,49 +189,49 @@ class Model:
 
             self.unix_time += self.timestep
 
-            # Update time on gui currentTimeLabel every self.timeLabelUpdate 
             timeDelta = ( self.current_time - self.start_time )
+
+            # Update time on gui currentTimeLabel every self.timeLabelUpdate
             quotient, remainder = divmod( timeDelta, self.timeLabelUpdate )
             if remainder == zero_timedelta :
-                self.gui.current_time_label.set( str( self.current_time ) )
-                self.gui.canvas.show()
+                if not self.args.noGUI :
+                    self.gui.current_time_label.set( str( self.current_time ) )
+                    self.gui.canvas.show()
+                else :
+                    self.gui.Message( str( self.current_time ) )
 
-            # Tuple used as lookup key for rain, ET, salinity, runoff
+            # Tuple used as lookup key for daily rain, ET, salinity, runoff
             key = ( self.current_time.year,
                     self.current_time.month,
                     self.current_time.day )
 
-            self.BoundaryConditions()
+            # Setup basins for this timestep
+            self.BoundaryConditions( key )
+            self.GetSalinity       ( key )
+            self.GetTides          ( self.unix_time )
+            self.GetRain           ( key )
+            self.GetET             ( key )
+            self.GetRunoff         ( key )
 
-            self.GetSalinity( key )
-
-            self.GetTides()
-
-            self.GetRain( key )
-
-            self.GetET( key )
-
-            self.GetRunoff( key )
-
+            # Solve basin transport/stage
             hydro.ShoalVelocities( self )
-
-            hydro.MassTransport( self )
-
-            hydro.Depths( self )
-
+            hydro.MassTransport  ( self )
+            hydro.Depths         ( self )
 
             # Display map update every timeMapUpdate interval or at sim end
-            quotient, remainder = divmod( timeDelta, self.timeMapUpdate )
-            if remainder == zero_timedelta or \
-               self.current_time == self.end_time :
+            if not self.args.noGUI :
+                quotient, remainder = divmod( timeDelta, self.timeMapUpdate )
+                if remainder == zero_timedelta or \
+                   self.current_time == self.end_time :
 
-                for Basin in self.Basins.values() :
-                    if not Basin.boundary_basin :
-                        Basin.SetBasinMapColor( mapPlotVariable, legend_bounds )
+                    for Basin in self.Basins.values() :
+                        if not Basin.boundary_basin :
+                            Basin.SetBasinMapColor( mapPlotVariable, 
+                                                    legend_bounds )
 
-                self.gui.current_time_label.set( str( self.current_time ) )
-                self.gui.RenderBasins()
-                self.gui.canvas.show()
+                    self.gui.current_time_label.set( str( self.current_time ) )
+                    self.gui.RenderBasins()
+                    self.gui.canvas.show()
 
             # Transfer data values to records for plots & file output
             quotient, remainder = divmod( timeDelta, self.outputInterval )
@@ -296,7 +296,7 @@ class Model:
         station_rain_map = self.rain_data[ key ]
 
         for Basin in self.Basins.values() :
-            if Basin.boundary_basin is True :
+            if Basin.boundary_basin :
                 continue
 
             rain_cm_day = 0
@@ -330,7 +330,7 @@ class Model:
         et_mm_day = self.et_data[ key ]
 
         for Basin in self.Basins.values() :
-            if Basin.boundary_basin is True :
+            if Basin.boundary_basin :
                 continue
 
             et_volume_day = ( et_mm_day / 1000 ) * Basin.area * \
@@ -346,57 +346,21 @@ class Model:
     # 
     #----------------------------------------------------------------
     def GetRunoff( self, key ):
-        '''Add runoff flow volume or set Everglades basin stage'''
+        '''Add runoff flow volume from EDEN : Basin stage flow'''
 
         if self.args.DEBUG_ALL :
             print( '\n-> GetRunoff', flush = True )
 
         if not self.args.noStageRunoff :
-            self.GetRunoffStage( key )
+            basin_stage_map = self.runoff_stage_data[ key ]
 
-        elif self.args.addFlowRunoff :
-            self.GetRunoffFlow( key )
- 
-    #----------------------------------------------------------------
-    # 
-    #----------------------------------------------------------------
-    def GetRunoffStage( self, key ):
-        '''Set stage in Everglades boundary basins'''
-
-        if self.args.DEBUG_ALL :
-            print( '\n-> GetRunoffStage', flush = True )
-
-        basin_stage_map = self.runoff_stage_data[ key ]
-
-        for Basin, EDEN_station in self.runoff_stage_basins.items() :
-
-            Basin.water_level = basin_stage_map[ EDEN_station ]
-
-    #----------------------------------------------------------------
-    # 
-    #----------------------------------------------------------------
-    def GetRunoffFlow( self, key ):
-        '''Add runoff flow volume to the basin'''
-
-        if self.args.DEBUG_ALL :
-            print( '\n-> GetRunoffFlow', flush = True )
-
-        basin_flow_map = self.runoff_flow_data[ key ]
-
-        for Basin in self.runoff_flow_basins :
-
-            volume_day = basin_flow_map[ Basin.number ]
-
-            volume_t = volume_day / self.timestep_per_day
-
-            Basin.runoff_flow = volume_t
-
-            Basin.water_volume += volume_t
+            for Basin, EDEN_station in self.runoff_stage_basins.items() :
+                Basin.water_level = basin_stage_map[ EDEN_station ]
 
     #-----------------------------------------------------------
     #
     #-----------------------------------------------------------
-    def GetTides( self ):
+    def GetTides( self, unix_time ):
         '''Set boundary basin water level to the tidal value with
         the seasonal mean sea level anomaly.'''
 
@@ -408,13 +372,13 @@ class Model:
             if self.args.noMeanSeaLevel :
                 self.seasonal_MSL = 0
             else :
-                self.seasonal_MSL = interpolate.splev( self.unix_time, 
+                self.seasonal_MSL = interpolate.splev( unix_time, 
                                                        self.seasonal_MSL_splrep,
                                                        der = 0 ).round( 3 )
         except ValueError as err :
             print( 'GetTides(): interpolate seasonal_MSL at ',
                    str( self.current_time ), '[', 
-                   str( self.unix_time ), ']  ', err )
+                   str( unix_time ), ']  ', err )
             self.seasonal_MSL = 0
 
         # Get the tidal value for each boundary basin
@@ -429,13 +393,13 @@ class Model:
                         # data values, and use round() on those.
                         # JP might change all data to numpy arrays
                         if Basin.boundary_function :
-                            wl = float(Basin.boundary_function(self.unix_time))
+                            wl = float( Basin.boundary_function( unix_time ) )
 
                 except ValueError as err :
                     print( 'GetTides() boundary_function basin: ', Basin.name, 
                            ' at ',
                            str( self.current_time ), '[', 
-                           str( self.unix_time ), ']  ', err )
+                           str( unix_time ), ']  ', err )
                     wl = 0
 
                 wl += self.seasonal_MSL
@@ -451,6 +415,9 @@ class Model:
         if self.args.DEBUG_ALL :
             print( '\n-> GetSalinity', flush = True )
 
+        if not self.salinity_data :
+            return
+
         station_salinity_map = self.salinity_data[ key ]
 
         for Basin in self.Basins.values() :
@@ -465,25 +432,45 @@ class Model:
     #-----------------------------------------------------------
     #
     #-----------------------------------------------------------
-    def BoundaryConditions( self ):
+    def BoundaryConditions( self, key ):
         '''Set additional basin flow, or stage value'''
 
         if self.args.DEBUG_ALL :
             print( '-> BoundaryConditions' )
 
-        if not self.args.boundaryConditions :
-            return
+        #--------------------------------------------------------
+        # Fixed head or flow (-fb) from the -bf file
+        if self.args.fixedBoundaryConditions :
+            for basin_num,type_value_tuple in self.fixed_boundary.items():
+                Basin = self.Basins[ basin_num ]
 
-        # Fixed head or flow
-        for basin_num, type_value_tuple in self.fixed_boundary_cond.items() :
-            Basin = self.Basins[ basin_num ]
+                if type_value_tuple[ 0 ] == 'flow' :
+                    bc_vol = float( type_value_tuple[ 1 ] ) * self.timestep
+                    Basin.water_volume += bc_vol
 
-            if type_value_tuple[ 0 ] == 'flow' :
-                bc_vol = float( type_value_tuple[ 1 ] ) * self.timestep
-                Basin.water_volume += bc_vol
+                elif type_value_tuple[ 0 ] == 'stage' :
+                    Basin.water_level = float( type_value_tuple[ 1 ] )
 
-            elif type_value_tuple[ 0 ] == 'stage' :
-                Basin.water_level = float( type_value_tuple[ 1 ] )
+        #--------------------------------------------------------
+        # Dynamic timeseries flow or head (-db) from the -bc file
+        if self.args.dynamicBoundaryConditions :
+
+            # Flow (volume) BC's
+            if self.dynamic_flow_boundary :
+                for Basin, basin_BC_map in self.dynamic_flow_boundary.items() :
+                    # Convert from cfs to m^3/s
+                    cubic_feet_second  = basin_BC_map[ key ]
+                    cubic_meter_second = cubic_feet_second * 0.028317
+                    # Convert to volume per timestep
+                    volume_t = cubic_meter_second * self.timestep
+
+                    Basin.runoff_flow   = volume_t
+                    Basin.water_volume += volume_t
+
+            # Stage BC's
+            if self.dynamic_head_boundary :
+                for Basin, basin_BC_map in self.dynamic_head_boundary.items() :
+                    Basin.water_level = basin_BC_map[ key ]
 
     #-----------------------------------------------------------
     #

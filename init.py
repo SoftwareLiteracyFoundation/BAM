@@ -47,7 +47,9 @@ def InitTimeBasins( model ):
     model.state = model.status.Init
     model.times.clear()
     model.current_time = model.start_time
-    model.gui.current_time_label.set( str( model.current_time ) )
+
+    if not model.args.noGUI :
+        model.gui.current_time_label.set( str( model.current_time ) )
 
     model.unix_time = ( model.current_time - 
                         datetime(1970,1,1) ).total_seconds()
@@ -83,25 +85,25 @@ def InitTimeBasins( model ):
     if not model.args.noStageRunoff and time_changed : # -nR
         GetBasinRunoffStageData( model )               # -bR
 
-    if model.args.addFlowRunoff and time_changed : # -aF
-        GetBasinFlowRunoffData( model )            # -bF
-
-    if model.args.gaugeSalinity and time_changed : # -gs
-        GetBasinSalinityData( model )              # -sf
-
     if time_changed :
         GetBasinStageData( model ) # -bs
 
-    if model.args.boundaryConditions :     # -bc
-        GetBasinBoundaryCondition( model ) # -bf
+    if model.args.dynamicBoundaryConditions and time_changed : # -db
+        GetBasinDynamicBCData( model )                         # -bc
+
+    if model.args.fixedBoundaryConditions :     # -fb
+        GetBasinFixedBoundaryCondition( model ) # -bf
+
+    if model.args.gaugeSalinity and time_changed : # -gs
+        GetBasinSalinityData( model )              # -sf
 
     # If salinityInit is 'yes' (-si), then override salinity from the
     # basinInit file (-bi) with the closest gauge data as mapped in the 
     # basinParameter (-bp) file. 
     if model.args.salinityInit.lower() == 'yes' :
-        GetBasinSalinityData( model )
+        if not model.salinity_data :
+            GetBasinSalinityData( model )
         SetInitialBasinSalinity( model )
-
 
     # Report simulation parameters 
     output_hours = model.outputInterval.days * 24 +\
@@ -115,9 +117,10 @@ def InitTimeBasins( model ):
           str( round( model.args.velocity_tol, 4 )) + ' (m/s)\n'
     model.gui.Message( msg )
 
-    model.gui.RenderBasins( init = True )
-    model.gui.PlotLegend()
-    model.gui.canvas.show()
+    if not model.args.noGUI :
+        model.gui.RenderBasins( init = True )
+        model.gui.PlotLegend()
+        model.gui.canvas.show()
 
 #----------------------------------------------------------------
 #
@@ -409,7 +412,8 @@ def GetBasinTidalData( model ):
 
     msg = 'Reading Tidal Boundary timeseries, please wait...'
     model.gui.Message( msg )
-    model.gui.canvas.show()
+    if not model.args.noGUI :
+        model.gui.canvas.show()
 
     # The csv file has 3 columns: 1 = basin number, 2 = type,
     # 3 = data file name
@@ -806,7 +810,7 @@ def GetBasinRunoffStageData( model ):
                      ' does not have ', valid_column
             raise Exception( errMsg )
 
-    # Get Basin : EDEN station data mapping and runoff_stage_offset
+    # Get Basin : EDEN station data mapping
     # The basinStageRunoffMap also contains the shoals between the 
     # EVER boundary basins and model basins, and the destination 
     # basin in the model for the runoff. 
@@ -911,92 +915,175 @@ def GetBasinRunoffStageData( model ):
 #----------------------------------------------------------------
 # 
 #----------------------------------------------------------------
-def GetBasinRunoffFlowData( model ):
-    '''Read daily runoff flow data (-bF)
-    Runoff basins are stored in runoff_flow_basins
-    
-    Populate runoff_flow_data dictionary'''
+def GetBasinDynamicBCData( model ):
+    '''Read daily runoff flow or stage data (-db) from -bc file,
+    Populate dynamic_flow_boundary and/or dynamic_head_boundary dictionary'''
     
     if model.args.DEBUG :
-        print( '\n-> GetBasinRunoffFlowData', flush = True )
+        print( '\n-> GetBasinDynamicBCData', flush = True )
 
-    # The csv file has 13 columns, 1 = YYYY-MM-DD
-    # 2 - 13 = Daily cumulative runoff in m^3 at the 12 runoff basins
-    # first row is header
-    # Manatee Bay,  Long Sound,   Joe Bay,       Little Madeira Bay,
-    # Madeira Bay,  Terrapin Bay, North Whipray, Rankin Bight,
-    # Rankin Lake,  Snake Bight,  Deer Key,      Eagle Key
-    fd   = open( model.args.path + model.args.basinRunoffFlow, 'r' )
+    # Get mapping of model basins to BC timeseries
+    fd   = open( model.args.path + model.args.basinBCFile, 'r' )
     rows = fd.readlines()
     fd.close()
 
-    # Create mapping of basin { name : number } from header
-    basin_names      = []
-    basinName_number = odict()  # Preserve order of basin insertion 
-    words = rows[ 0 ].split(',')
+    # Create a mapping of column index and variable name
+    header = rows[ 0 ].split( ',' ) 
+    words  = [ word.strip() for word in header ]
 
-    for i in range( 1, len( words ) ) : # Skip the first column (date:time)
-        basin_names.append( words[ i ].strip() )
-        
-    for basin_name in basin_names :
-        for Basin in model.Basins.values() :
-            if Basin.name == basin_name :
-                basinName_number[ basin_name ] = Basin.number
-                continue
+    var_column_map = dict()
+    for word in words :
+        var_column_map[ word ] = words.index( word )
+            
+    # Validate the file has the correct columns
+    valid_columns = [ 'Basin', 'Name', 'Type', 'File' ]
 
-    # Check that basin numbers are valid Basins
-    for basin_name, basin_num in basinName_number.items() :
-        if basin_num not in model.Basins :
-            errMsg = 'GetBasinRunoffFlowData: Basin ' + basin_name +\
-                     ' [' + str( basin_num ) + '] is not a valid Basin.'
+    for valid_column in valid_columns :
+        if valid_column not in words :
+            errMsg = 'Dynamic BC file ' + model.args.basinBCFile +\
+                     ' does not have ', valid_column
             raise Exception( errMsg )
 
-        # Store a reference to the Basin in runoff_flow_basins
-        model.runoff_flow_basins.append( model.Basins[ basin_num ] )
+    # Process each row 
+    # Get Basin : BC Type and data file mapping and fill in the
+    # dynamic_flow_boundary or dynamic_head_boundary as appropriate
+    for i in range( 1, len( rows ) ) :  # Skip the header
+        row   = rows[ i ]
+        words = row.split(',')
 
-    # Create list of datetimes
-    dates = []
+        basin_num  = int( words[ var_column_map['Basin'] ] )
+        basin_name = words[ var_column_map['Name'] ].strip()
+        data_type  = words[ var_column_map['Type'] ].strip()
+        bc_file    = words[ var_column_map['File'] ].strip()
+
+        Basin = model.Basins[ basin_num ]
+
+        if Basin.name != basin_name :
+            errMsg = 'GetBasinDynamicBCData: Basin ' + basin_num +\
+                     ' ' + Basin.name + ' does not match ' + basin_name +\
+                     ' in file ' + model.args.basinBCFile + '\n'
+            raise Exception( errMsg )
+
+        if data_type not in [ 'flow', 'stage' ] :
+            errMsg = 'GetBasinDynamicBCData: Basin ' + basin_num +\
+                     ' ' + Basin.name + ' Type ' + data_type +\
+                     ' must be flow or stage in file '+\
+                     model.args.basinBCFile + '\n'
+            raise Exception( errMsg )
+            
+        # Load flow or stage data into the appropriate dictionary
+        # The csv file has 2 columns, 1 = YYYY-MM-DD, 2 = value
+        # first row is header
+        fd   = open( model.args.path + bc_file, 'r' )
+        rows = fd.readlines()
+        fd.close()
+
+        # Create list of datetimes
+        dates = []
+        for i in range( 1, len( rows ) ) :  # Skip the header
+            row   = rows[ i ]
+            words = row.split(',')
+            dates.append( strptime( words[ 0 ], '%Y-%m-%d' ) )
+
+        # Find index in dates for start_time & end_time
+        start_i, end_i = GetTimeIndex( 'BC ' + data_type, dates, 
+                                       model.start_time, model.end_time )
+        
+        if model.args.DEBUG_ALL :
+            print( data_type, 
+                   ' BC data start: ', str(dates[start_i]),str(start_i), 
+                   ' end: ',           str(dates[ end_i ]),str( end_i ) )
+            print( rows[ start_i ] )
+            print( rows[ end_i   ] )
+
+        # The dynamic_*_boundary is a nested dictionary intended to minimize
+        # dictionary key lookups to access basin stage for a 
+        # specific year month day. The key is a Basin object,
+        # values are { ( Year, Month, Day ), : volume or head }.
+        basin_BC_map = dict() # { ( Year, Month, Day ) : bc_value }
+
+        # Populate only data needed for the simulation timeframe
+        for i in range( start_i, end_i + 1 ) :
+            row   = rows[ i+1 ]
+            words = row.split(',')
+
+            basin_value = dict()
+
+            bc_value = float( words[ 1 ] )
+                
+            date = dates[ i ]
+            key  = ( date.year, date.month, date.day )
+
+            # flow assumed to be cfs, convert to timestep volume
+            if data_type == 'flow' :
+                bc_value = bc_value * model.timestep
+
+            basin_BC_map[ key ] = bc_value
+
+            if data_type == 'flow' :
+                model.dynamic_flow_boundary[ Basin ] = basin_BC_map
+
+            elif data_type == 'stage' :
+                model.dynamic_head_boundary[ Basin ] = basin_BC_map
+
+    if model.args.DEBUG_ALL :
+        print( model.dynamic_flow_boundary )
+        print( model.dynamic_head_boundary )
+
+#----------------------------------------------------------------
+# 
+#----------------------------------------------------------------
+def GetBasinFixedBoundaryCondition( model ):
+    """Read data according to the basinFixedBCFile file (-bf)"""
+    
+    if model.args.DEBUG_ALL :
+        print( '\n-> GetBasinFixedBoundaryCondition', flush = True )
+
+    # The csv file has 4 columns: 1 = basin number, 2 = basin name,
+    # 3 = type, 4 = value.  Value must be a numeric. 
+    fd   = open( model.args.path + model.args.basinFixedBCFile, 'r' )
+    rows = fd.readlines()
+    fd.close()
+
+    # Validate each row of data, skip the header
     for i in range( 1, len( rows ) ) :
         row   = rows[ i ]
         words = row.split(',')
-        dates.append( strptime( words[ 0 ], '%Y-%m-%d' ) )
-
-    # Find index in dates for start_time & end_time
-    start_i, end_i = GetTimeIndex( 'Runoff', dates, 
-                                   model.start_time, model.end_time )
-        
-    if model.args.DEBUG :
-        print( 'Runoff Flow data start: ',
-               str(dates[ start_i ]),str(start_i), 
-               ' end: ', str(dates[ end_i   ]),str(end_i) )
-        print( rows[ start_i ] )
-        print( rows[ end_i ] )
-
-    # The runoff_flow_data is a nested dictionary intended to minimize
-    # dictionary key lookups to access basin runoff for a 
-    # specific year month day. The key is an integer 3-tuple of
-    # ( Year, Month, Day ), values are a basin_flow_runoff dictionary.
-
-    # Populate only data needed for the simulation timeframe
-    for i in range( start_i, end_i + 1 ) :
-        row   = rows[ i+1 ]
-        words = row.split(',')
-
-        basin_flow_runoff = dict() # { basin_num : runoff }
-
-        j = 1 # Skip the first column (date:time)
-        for basin_num in basinName_number.values() :  # odict
-            basin_flow_runoff[ basin_num ] = float( words[ j ] )
-            j += 1
-
-        date = dates[ i ]
-        key = ( date.year, date.month, date.day )
-
-        model.runoff_flow_data[ key ] = basin_flow_runoff
             
-    if model.args.DEBUG :
-        print( model.runoff_flow_data )
+        basin      = int ( words[ 0 ] )
+        basin_name = words[ 1 ].strip()
+        data_type  = words[ 2 ].strip()
+        data_value = words[ 3 ].strip()
 
+        if basin not in model.Basins.keys() :
+            errMsg = 'GetBasinFixedBoundaryCondition() Error: Basin ' +\
+                      basin + ' not found in the Basins map.\n'
+            raise Exception( errMsg )
+
+        if model.Basins[ basin ].name != basin_name :
+            errMsg = 'GetBasinFixedBoundaryCondition() Error: Basin ' +\
+                      str( basin ) + '[' + model.Basins[ basin ].name +\
+                      '] does not match ' + basin_name + ' in '       +\
+                      model.args.basinFixedBCFile + '\n'
+            raise Exception( errMsg )
+
+        if model.Basins[ basin ].boundary_basin :
+            errMsg = 'GetBasinFixedBoundaryCondition() Error: Basin ' +\
+                      model.Basins[ basin ].name + ' is a boundary_basin.\n'
+            raise Exception( errMsg )
+
+        if data_type not in [ 'flow', 'stage', 'None' ] :
+            errMsg = 'GetBasinFixedBoundaryCondition() Error: Basin ' +\
+                      model.Basins[ basin ].name + ' invalid data type: ' +\
+                      data_type + '.\n'
+            raise Exception( errMsg )
+
+        if model.args.DEBUG_ALL :
+            print( '\tValidated: ', basin, data_type, data_value )
+
+        # Insert BC values into model.fixed_boundary 
+        if data_type in [ 'flow', 'stage'] :
+            model.fixed_boundary[ basin ] = ( data_type, data_value )
 
 #----------------------------------------------------------------
 # 
@@ -1083,58 +1170,6 @@ def GetBasinStageData( model ):
         
     if model.args.DEBUG_ALL :
         print( model.stage_data )
-
-#----------------------------------------------------------------
-# 
-#----------------------------------------------------------------
-def GetBasinBoundaryCondition( model ):
-    """Read data according to the basinBCFile file (-bf)"""
-    
-    if model.args.DEBUG_ALL :
-        print( '\n-> GetBasinBoundaryCondition', flush = True )
-
-    # The csv file has 3 columns: 1 = basin number, 2 = type,
-    # 3 = value.  value can be a numeric, or a timeseries file
-    fd   = open( model.args.path + model.args.basinBCFile, 'r' )
-    rows = fd.readlines()
-    fd.close()
-
-    # Validate each row of data, skip the header
-    for i in range( 1, len( rows ) ) :
-        row   = rows[ i ]
-        words = row.split(',')
-            
-        basin      = int ( words[ 0 ] )
-        data_type  = words[ 1 ].strip()
-        data_value = words[ 2 ].strip()
-
-        if basin not in model.Basins.keys() :
-            errMsg = 'GetBasinBoundaryCondition() Error: Basin ' +\
-                      basin + ' not found in the Basins map.\n'
-            raise Exception( errMsg )
-
-        if model.Basins[ basin ].boundary_basin :
-            errMsg = 'GetBasinBoundaryCondition() Error: Basin ' +\
-                      model.Basins[ basin ].name + ' is a boundary_basin.\n'
-            raise Exception( errMsg )
-
-        if data_type not in [ 'flow', 'stage', 'timeseries', 'None' ] :
-            errMsg = 'GetBasinBoundaryCondition() Error: Basin ' +\
-                      model.Basins[ basin ].name + ' invalid data type: ' +\
-                      data_type + '.\n'
-            raise Exception( errMsg )
-
-        if model.args.DEBUG_ALL :
-            print( '\tValidated: ', basin, data_type, data_value )
-
-        # Insert BC values into model.fixed_boundary_cond 
-        if data_type in [ 'flow', 'stage'] :
-            model.fixed_boundary_cond[ basin ] = ( data_type, data_value )
-
-        elif data_type == 'timeseries' :
-            # Get the timeseries from the file listed in data_value
-            # model.timeseries_boundary[ basin ] = 
-            pass
 
 #----------------------------------------------------------------
 # 

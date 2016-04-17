@@ -33,22 +33,22 @@ class Basin:
         self.perimeter       = perimeter  # (m)
         self.wet_area        = dict()     # (m^2) { depth(ft) : Area(m^2) }
         self.land_area       = None       # (m^2)
-        self.area            = 0          # (m^2) 
+        self.area            = 0.         # (m^2) 
         self.water_level     = None       # (m)
-        self.water_volume    = 0          # (m^3)
-        self.previous_volume = 0          # (m^3)
+        self.water_volume    = 0.         # (m^3)
+        self.previous_volume = 0.         # (m^3)
         self.salt_mass       = None       # (kg)
-        self.salt_factor     = 1          # ()
+        self.salt_factor     = 1.         # ()
         self.salinity        = None       # (g/kg)
         self.temperature     = None       # (C)
 
         # Volume transports
-        self.shoal_transport = None   # (m^3/timestep) Sum : Shoal Q_total * dt
-        self.rainfall        = None   # (m^3/timestep)
-        self.runoff_flow     = None   # (m^3/timestep) imposed flow
-        self.runoff_EVER     = None   # (m^3/timestep) EDEN stage over shoals
-        self.groundwater     = None   # (m^3/timestep)
-        self.evaporation     = None   # (m^3/timestep)
+        self.shoal_transport = 0.   # (m^3/timestep) Sum : Shoal Q_total * dt
+        self.rainfall        = 0.   # (m^3/timestep)
+        self.runoff_flow     = 0.   # (m^3/timestep) imposed flow
+        self.runoff_EVER     = 0.   # (m^3/timestep) EDEN stage over shoals
+        self.groundwater     = 0.   # (m^3/timestep)
+        self.evaporation     = 0.   # (m^3/timestep)
 
         self.shoal_nums = set() # Shoal numbers : keys in Shoals map, for gui
         self.Shoals     = []    # Shoals
@@ -147,15 +147,15 @@ class Basin:
                 elif plotVariable == 'Volume' :
                     data_value = self.water_volume
                 elif plotVariable == 'Flow' :
-                    data_value = self.shoal_transport
+                    data_value = self.shoal_transport / self.model.timestep
                 elif plotVariable == 'Rain' :
-                    data_value = self.rainfall
+                    data_value = self.rainfall / self.model.timestep
                 elif plotVariable == 'Evaporation' :
-                    data_value = self.evaporation
+                    data_value = self.evaporation / self.model.timestep
                 elif plotVariable == 'Runoff' :
-                    data_value = self.runoff_EVER
+                    data_value = self.runoff_EVER / self.model.timestep
                 elif plotVariable == 'Groundwater' :
-                    data_value = self.groundwater
+                    data_value = self.groundwater / self.model.timestep
                 else :
                     msg = 'CopyDataRecord: ' + self.name + ' ' + plotVariable +\
                         ' is not supported for plotting.\n'
@@ -194,7 +194,7 @@ class Basin:
         # Write the header
         header = 'Time,\t\t\t'
         for plotVariable in self.plot_variables.keys() :
-            header = header + plotVariable +' '+ var_units[ plotVariable ] +',\t'
+            header = header + plotVariable +' '+ var_units[plotVariable] +',\t'
         header = header.rstrip( ',\t' )
         fd.write( header + '\n' )
 
@@ -233,7 +233,6 @@ class Basin:
 
         # Close file
         fd.close()
-
 
     #-----------------------------------------------------------
     # 
@@ -330,21 +329,26 @@ class Basin:
 
         if self.shoal_transport != None :
             basinInfo = basinInfo +\
-                ' Shoal Flux: ' + str( round( self.shoal_transport, 2 ) ) +\
-                ' (m^3/t)\n'
+                ' Shoal Flux: ' +\
+                str( round( self.shoal_transport / self.model.timestep, 2 ) ) +\
+                ' (m^3/s)\n'
         
         if self.rainfall != None :
             basinInfo = basinInfo +\
-                ' Rain: ' + str( round( self.rainfall, 2 ) ) + ' (m^3/t)\n'
+                ' Rain: ' +\
+                str( round( self.rainfall / self.model.timestep, 2 ) ) +\
+                ' (m^3/s)\n'
         
         if self.groundwater != None :
             basinInfo = basinInfo +\
-                ' Groundwater: ' + str( round( self.groundwater, 2 ) ) +\
-                ' (m^3/t)\n'
+                ' Groundwater: ' +\
+                str( round( self.groundwater / self.model.timestep, 2 ) ) +\
+                ' (m^3/s)\n'
         
         if self.evaporation != None :
             basinInfo = basinInfo +\
-                ' Evaporation: ' + str( round( self.evaporation, 2 ) ) +\
-                ' (m^3/t)\n'
+                ' Evaporation: ' +\
+                str( round( self.evaporation / self.model.timestep, 2 ) ) +\
+                ' (m^3/s)\n'
 
         self.model.gui.Message( basinInfo )

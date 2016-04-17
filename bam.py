@@ -31,10 +31,7 @@ def main():
       Groundwater : include as Runoff?
       -------------------------------------------------------------
       Flush output files
-      Add a non-gui option
-      Change plot time units from model timestep (dt) to s, min, hr, day
       Plot archived data with run id
-      Add iteration count to output
       Replace shoal hydro dictionaries with explicitly indexed numpy arrays?
       Replace numeric lists with pre-allocated numpy arrays?
       Break the Run() out into a multiprocess with queue or pipe comms : Pause
@@ -47,8 +44,10 @@ def main():
     args = ParseCmdLine()
 
     # Initialize the root Tk object
-    root = Tk.Tk()
-    root.title( 'Bay Assessment Model' )
+    root = None
+    if not args.noGUI :
+        root = Tk.Tk()
+        root.title( 'Bay Assessment Model' )
 
     # Instantiate and initialize the main Model class and its
     # Basins and Shoals maps
@@ -56,13 +55,19 @@ def main():
     
     # Create GUI
     model.gui = gui.GUI( root, model )
-    model.gui.FloridaBayModel_Tk()
+    if not args.noGUI :
+        model.gui.FloridaBayModel_Tk()
 
     InitTimeBasins( model )
+
     model.gui.InitPlotVars() # Set default outputs
 
-    # Enter the Tk mainloop
-    model.gui.Tk_root.mainloop()
+    if not args.noGUI :
+        # Enter the Tk mainloop
+        model.gui.Tk_root.mainloop()
+    else :
+        # Run the model
+        model.Run()
 
 #--------------------------------------------------------------
 # 
@@ -89,14 +94,14 @@ def ParseCmdLine():
     parser.add_argument('-S', '--start',
                         dest    = 'start', type = str, 
                         action  = 'store', 
-                        default = '2010-01-01 00:00',
-                        help    = 'start date time: -S "2010-01-01 00:00"')
+                        default = '2010-01-01',
+                        help    = 'start date time: -S "2010-01-01"')
 
     parser.add_argument('-E', '--end',
                         dest    = 'end', type = str, 
                         action  = 'store', 
-                        default = '2010-01-01 08:00',
-                        help    = 'End date time: -E "2010-01-01 08:00"')
+                        default = '2010-01-02',
+                        help    = 'End date time: -E "2010-01-02"')
 
     parser.add_argument('-vt', '--velocity_tolerarance',
                         dest    = 'velocity_tol', type = float, 
@@ -111,11 +116,11 @@ def ParseCmdLine():
                         default = 3000,
                         help    = 'velocity iteration limit: -it 3000')
 
-    parser.add_argument('-b', '--basins',
+    parser.add_argument('-bn', '--basins',
                         dest    = 'basinShapeFile', type = str, 
                         action  = 'store', 
                         default = 'data/GIS/FLBayBasins',
-                        help    = 'Basins shape file: -d data/GIS/FLBayBasins')
+                        help    = 'Basins shape file: -bn data/GIS/FLBayBasins')
 
     parser.add_argument('-bd', '--basinDepth',
                         dest    = 'basinDepth', type = str, 
@@ -139,11 +144,11 @@ def ParseCmdLine():
                                   '-bi data/init/Basin_Initial_Values.csv' )
 
     parser.add_argument('-bt', '--basinTide',
-                        dest    = 'basinTide', type = str, 
-                        action  = 'store', 
-                        default = 'data/init/Basin_Tide_Boundary_2010_2015.csv',
-                        help    = 'Basin tide boundary data files: -bt ' +\
-                                  'data/init/Basin_Tide_Boundary_1995_2002.csv')
+                    dest    = 'basinTide', type = str, 
+                    action  = 'store', 
+                    default = 'data/Boundary/Basin_Tide_Boundary_2010_2015.csv',
+                    help    = 'Basin tide boundary data files: -bt ' +\
+                              'data/Boundary/Basin_Tide_Boundary_2010_2015.csv')
 
     parser.add_argument('-br', '--basinRain',
                         dest    = 'basinRain', type = str, 
@@ -153,12 +158,19 @@ def ParseCmdLine():
                         help    = 'Daily rain data file: -br data/Rain/' +\
                                   'DailyRainFilled_cm_1999-9-1_2015-12-8.csv' )
 
-    parser.add_argument('-bf', '--basinBCFile',
+    parser.add_argument('-bc', '--basinBCFile',
                         dest    = 'basinBCFile', type = str, 
                         action  = 'store', 
-                        default = 'data/init/Basin_Boundary_Condition.csv',
-                        help    = 'Basin boundary condition data files: -bb ' +\
-                                  'data/init/Basin_Boundary_Condition.csv')
+                        default = 'data/Boundary/Basin_Boundary_Condition.csv',
+                        help    = 'Basin boundary condition data files: -bc ' +\
+                                  'data/Boundary/Basin_Boundary_Condition.csv')
+
+    parser.add_argument('-bf', '--basinFixedBCFile',
+                   dest    = 'basinFixedBCFile', type = str, 
+                   action  = 'store', 
+                   default = 'data/Boundary/Basin_Fixed_Boundary_Condition.csv',
+                   help    = 'Basin fixed boundary condition data files: -bf '+\
+                             'data/Boundary/Basin_Fixed_Boundary_Condition.csv')
 
     parser.add_argument('-bo', '--basinOutput',
                         dest    = 'basinOutputDir', type = str, 
@@ -167,34 +179,27 @@ def ParseCmdLine():
                         help    = 'Directory to write basin outputs: -bo ' +\
                                   home_dir + '/BAM.out' )
 
-    parser.add_argument('-bF', '--basinFlowRunoff',
-                        dest    = 'basinFlowRunoff', type = str, 
-                        action  = 'store', 
-                        default = 'data/Runoff/DailyRunoffVolume.csv',
-                        help    = 'Daily runoff flow volume data file: ' +\
-                                  '-bF data/Runoff/DailyRunoffVolume.csv' )
-
     parser.add_argument('-bR', '--basinStageRunoff',
                         dest    = 'basinStageRunoff', type = str, 
                         action  = 'store', 
                         default = 'data/Runoff/EDEN_Stage_OffsetMSL.csv',
                         help    = 'Daily runoff EDEN stage data file: ' +\
-                                  '-bF data/Runoff/' +\
+                                  '-bR data/Runoff/' +\
                                   'EDEN_Stage_OffsetMSL.csv' )
 
     parser.add_argument('-bS', '--basinStageRunoffMap',
                         dest    = 'basinStageRunoffMap', type = str, 
                         action  = 'store', 
-                        default = 'data/init/Basin_Runoff_Boundary.csv',
+                        default = 'data/Boundary/Basin_Runoff_Boundary.csv',
                         help    = 'Mapping of EDEN stage to basin: ' +\
-                                  '-bS data/init/Basin_Runoff_Boundary.csv' )
+                                  '-bS data/Boundary/Basin_Runoff_Boundary.csv')
 
     parser.add_argument('-bs', '--basinStage',
                         dest    = 'basinStage', type = str, 
                         action  = 'store', 
                         default = 'data/Stage/' +\
                                   'DailyStage_1999-9-1_2016-3-1.csv',
-                        help  = 'Daily stage data file: -sf data/Stage/'+\
+                        help  = 'Daily stage data file: -bs data/Stage/'+\
                                 'DailyStage_1999-9-1_2016-3-1.csv' )
 
     parser.add_argument('-et', '--ET',
@@ -235,7 +240,7 @@ def ParseCmdLine():
                         dest    = 'shoalManning', type = float, 
                         action  = 'store', 
                         default = None,
-                        help    = 'Manning friction for all shoals: -sf 0.1' )
+                        help    = 'Manning friction for all shoals: -sm 0.1' )
 
     parser.add_argument('-sf', '--salinityFile',
                         dest    = 'salinityFile', type = str, 
@@ -248,9 +253,8 @@ def ParseCmdLine():
     parser.add_argument('-msl', '--seasonalMSL',
                         dest    = 'seasonalMSL', type = str, 
                         action  = 'store', 
-                        default = 'data/Tide/' +\
-                                  'MSL_Anomaly.csv',
-                        help    = 'Seasonal MSL: -sm data/Tide/' +\
+                        default = 'data/Tide/MSL_Anomaly.csv',
+                        help    = 'Seasonal MSL: -msl data/Tide/' +\
                                   'MSL_Anomaly.csv')
 
     parser.add_argument('-e', '--editor',
@@ -263,13 +267,14 @@ def ParseCmdLine():
                         dest    = 'runID', type = str, 
                         action  = 'store', 
                         default = '',
-                        help    = 'Run ID for output files.')
+                        help    = 'Run ID for output files: -r RunID')
 
     parser.add_argument('-rf', '--runInfoFile',
                         dest    = 'runInfoFile', type = str, 
                         action  = 'store', 
                         default = 'RunInfo.txt',
-                        help    = 'File for output run messages.')
+                        help    = 'File for model run messages: ' +\
+                                  '-rf RunInfo.txt')
 
     parser.add_argument('-oi', '--outputInterval',
                         dest    = 'outputInterval', type = int, 
@@ -297,8 +302,13 @@ def ParseCmdLine():
                         default = 50,
                         help    = 'Salinity legend bound on map: -P 50')
 
-    parser.add_argument('-bc', '--boundaryConditions',
-                        dest   = 'boundaryConditions', # type = bool, 
+    parser.add_argument('-db', '--dynamicBoundaryConditions',
+                      dest   = 'dynamicBoundaryConditions', # type = bool, 
+                      action = 'store_true', default = False,
+                      help   = 'Enable dynamic boundary conditions for basins.')
+
+    parser.add_argument('-fb', '--fixedBoundaryConditions',
+                        dest   = 'fixedBoundaryConditions', # type = bool, 
                         action = 'store_true', default = False,
                         help   = 'Enable fixed boundary conditions for basins.')
 
@@ -316,11 +326,6 @@ def ParseCmdLine():
                         dest   = 'noStageRunoff', # type = bool, 
                         action = 'store_true', default = False,
                         help   = 'Disable EDEN stage runoff inputs.')
-
-    parser.add_argument('-aF', '--addFlowRunoff',
-                        dest   = 'addFlowRunoff', # type = bool, 
-                        action = 'store_true', default = False,
-                        help   = 'Activate Everglades flow runoff inputs.')
 
     parser.add_argument('-nt', '--noTide',
                         dest   = 'noTide', # type = bool, 
@@ -342,6 +347,11 @@ def ParseCmdLine():
                         action = 'store', default = 'yes',
                         help   = 'Initialize basin salinity from gauge data.')
 
+    parser.add_argument('-ng', '--noGUI',
+                        dest   = 'noGUI', # type = bool, 
+                        action = 'store_true', default = False,
+                        help   = 'Disable GUI.')
+
     parser.add_argument('-D', '--DEBUG',
                         dest   = 'DEBUG', # type = bool, 
                         action = 'store_true', default = False )
@@ -361,16 +371,9 @@ def ParseCmdLine():
 
     # Add the original command line
     command_line = ''
-    for c in sys.argv :
-        command_line = command_line + c + ' '
+    for cmd in sys.argv :
+        command_line = command_line + cmd + ' '
     args.commandLine = command_line
-
-    # Disqualify mutiple runoff BC's
-    if ( not args.noStageRunoff ) and args.addFlowRunoff :
-        errMsg = 'ParseCmdLine: Cannot specify runoff stage and flow ' +\
-                 'together.  Either disable EDEN stage runoff (-nR) or ' +\
-                 'do not specify Everglades flow runoff (-aF).'
-        raise Exception( errMsg )
 
     # Tick marks for the legend : values corresponding to legend_color_map
     # Create stage_legend_bounds

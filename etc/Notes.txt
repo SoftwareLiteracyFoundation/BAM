@@ -1,4 +1,17 @@
 
+S197 : Manatee Bay Flows
+
+It appears that about 0.1% of the flow estimated at S197 is not accounted
+for by the EDEN stage/hydraulics runoff paradigm. So, using S197 data 
+from SFWMD in cfs:
+
+> load( 'S197_Flow_1999-9-1_2016-3-31.Rdata' )
+> df $ cfs.daily = df $ cfs.daily * 0.001
+> write.csv( df, file = 'S197_Flow_1999-9-1_2016-3-31.csv', quote = FALSE, row.names =FALSE )
+
+
+----------------------------------------------------------------
+
 Salt mass momentum
 
 1) Δt / tidal cycle = 6 min / 6 hr = 360 / (3600 * 6 ) = 0.01667
@@ -331,7 +344,7 @@ Wet Length: 1ft: 322  2ft: 497  3ft: 351  4ft: 615  5ft: 88  6ft: 0  7ft: 0  8ft
 ------------------------------------------------------------------
 Stage Computation Check:
 Constant addition of V = 1000 m^3/s to Blue Bank at dt = 60 s Manning 0.1
-./bam.py -t 60 -nt -nm -ne -nr -nR -bc -si 'n' -sm 0.1
+./bam.py -t 60 -E "2010-1-1 08:00" -nt -nm -ne -nr -nR -fb -si 'n' -sm 0.1
 ------------------------------------------------------------------
 0 ft area ~ 23.21 km^2
 dh = dV / A
@@ -345,9 +358,9 @@ Volumes from table below in mass balance check to stage change:
 [1] 1.758e-08
 
 ------------------------------------------------------------------
-Mass balance check:
+Mass balance check: over 8:00 hours
 Constant addition of V = 1000 m^3/s to Blue Bank at dt = 60 s Manning 0.1
-./bam.py -t 60 -nt -nm -ne -nr -nR -bc -si 'n' -sm 0.1
+./bam.py -t 60 -E "2010-1-1 08:00" -nt -nm -ne -nr -nR -fb -si 'n' -sm 0.1
 ------------------------------------------------------------------
 Steady state in Blue Bank
 
@@ -366,14 +379,13 @@ Blue Bank : dt = 1 s
  Stage: 0.01 (m)
  Salinity: 17.77 (g/kg)
  Volume: 0.0425 (km^3)
- Shoal Flux: 1000.0 (m^3/t)
+ Shoal Flux: 1000.0 (m^3/s)
 
 Blue Bank : dt = 60 s
  Stage: 0.01 (m)
  Salinity: 17.76 (g/kg)
  Volume: 0.0425 (km^3)
- Shoal Flux: 60294.74 (m^3/t)
-
+ Shoal Flux: 1004.91 (m^3/s)
                                       Shoal Q_total (m^3/s) (below)
 Blue Bank     to  First National Bank Q_total:    2.1
 Johnson Key   to  Blue Bank           Q_total:  -28.7 : Invert B -> A
@@ -427,9 +439,9 @@ Velocities: 1ft: -0.015 2ft: -0.024 3ft: -0.031 4ft: -0.037 5ft: -0.043 (m/s)
 Q: 1ft: -1.471 2ft: -7.159 3ft: -9.908 4ft: -27.979 5ft: -5.796 (m^3/s)  Q_total: -52.3 (m^3/s)
 
 ------------------------------------------------------------------
-Salinity Check:
-Constant addition of V = 100000 m^3 to Blue Bank at dt = 60 s Manning 0.1
-./bam.py -t 60 -nt -nm -ne -nr -nR -bc -si 'n' -sm 0.1
+Salinity Check: over 8:00 hours
+Constant addition of V = 1000 m^3 to Blue Bank at dt = 60 s Manning 0.1
+./bam.py -t 60 -nt -nm -ne -nr -nR -fb -si 'n' -sm 0.1
 Initial salinity in Blue Bank and surrounding basins is 35
 ------------------------------------------------------------------
 Time	Salinity (ppt)	Stage(m) Volume(m^3) Flow (m^3/dt) Salt mass  Computed
@@ -448,9 +460,9 @@ Timesteps per Interval	60
 Note: At a timestep of dt = 1 s, the BAM values are verified. 
 
 ------------------------------------------------------------------
-Salinity Check:
-Constant removal of V = -100000 m^3 from Blue Bank at dt = 60 s Manning 0.1
-./bam.py -t 60 -nt -nm -ne -nr -nR -bc -si 'n' -sm 0.1
+Salinity Check: over 8:00 hours
+Constant removal of V = -1000 m^3 from Blue Bank at dt = 60 s Manning 0.1
+./bam.py -t 60 -E "2010-1-1 08:00" -nt -nm -ne -nr -nR -fb -si 'n' -sm 0.1
 Initial salinity in Blue Bank and surrounding basins is 35
 ------------------------------------------------------------------
 Time	Salinity(ppt) Stage(m) Volume(m^3) Flow(m^3/dt)	Salt mass    Computed

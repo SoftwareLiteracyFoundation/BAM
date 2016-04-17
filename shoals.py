@@ -80,25 +80,25 @@ class Shoal:
         shoalInfo = shoalInfo + '\nh_upstream: '
         for depth, h in self.h_upstream.items() :
             shoalInfo = shoalInfo + str( depth ) + 'ft: ' +\
-                str( round( h, 3 ) ) + ' '
+                        str( round( h, 3 ) ) + ' '
         shoalInfo = shoalInfo + '(m)'
 
         shoalInfo = shoalInfo + '\nh_downstream: '
         for depth, h in self.h_downstream.items() :
             shoalInfo = shoalInfo + str( depth ) + 'ft: ' +\
-                str( round( h, 3 ) ) + ' '
+                        str( round( h, 3 ) ) + ' '
         shoalInfo = shoalInfo + '(m)'
         
         shoalInfo = shoalInfo + '\nVelocities: '
         for depth, velocity in self.velocity.items() :
             shoalInfo = shoalInfo + str( depth ) + 'ft: ' +\
-                str( round( velocity, 3 ) ) + ' '
+                        str( round( velocity, 3 ) ) + ' '
         shoalInfo = shoalInfo + '(m/s)'
 
         shoalInfo = shoalInfo + '\nQ: '
         for depth, Q in self.Q.items() :
             shoalInfo = shoalInfo + str( depth ) + 'ft: ' +\
-                str( round( Q, 3 ) ) + ' '
+                        str( round( Q, 3 ) ) + ' '
         shoalInfo = shoalInfo + '(m^3/s)  Q_total: ' +\
             str( round( self.Q_total, 1 ) ) + ' (m^3/s)\n'
 
@@ -106,7 +106,7 @@ class Shoal:
             shoalInfo = shoalInfo + '\nWet Length: '
             for depth, length in self.wet_length.items() :
                 shoalInfo = shoalInfo + str( int( depth ) ) + 'ft: ' +\
-                    str( round( length ) ) + '  '
+                            str( round( length ) ) + '  '
                 shoalInfo = shoalInfo + '(m)\n'
 
         self.model.gui.Message( shoalInfo )

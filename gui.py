@@ -69,11 +69,12 @@ class GUI:
         self.endTimeEntry       = None # simulation end time
 
         self.plotVar_IntVars    = odict() # { plotVariable : Tk.IntVar() }
-        self.mapPlotVariable    = Tk.StringVar()
-        self.plotVariable       = Tk.StringVar()
-        self.current_time_label = Tk.StringVar()
-        self.start_text         = Tk.StringVar( value = model.args.start )
-        self.end_text           = Tk.StringVar( value = model.args.end   )
+        if not self.model.args.noGUI :
+            self.mapPlotVariable    = Tk.StringVar()
+            self.plotVariable       = Tk.StringVar()
+            self.current_time_label = Tk.StringVar()
+            self.start_text         = Tk.StringVar( value = model.args.start )
+            self.end_text           = Tk.StringVar( value = model.args.end   )
 
         self.plot_dir           = model.args.basinOutputDir
         self.last_plot_dir      = self.plot_dir
@@ -376,9 +377,12 @@ class GUI:
     #
     #------------------------------------------------------------------
     def Message ( self, msg ) :
-        '''Display message in msgText box.'''
-        self.msgText.insert( Tk.END, msg )
-        self.msgText.see   ( Tk.END )
+        '''Display message in msgText box or on console, log to run_info.'''
+        if not self.model.args.noGUI :
+            self.msgText.insert( Tk.END, msg )
+            self.msgText.see   ( Tk.END )
+        else :
+            print( msg )
 
         self.model.run_info.append( msg )
 
@@ -410,7 +414,11 @@ class GUI:
         self.plotVar_IntVars.clear()
 
         for plotVariable in constants.BasinPlotVariable :
-            self.plotVar_IntVars[ plotVariable ] = Tk.IntVar()
+            if not self.model.args.noGUI :
+                self.plotVar_IntVars[ plotVariable ] = Tk.IntVar()
+            else :
+                # Use the IntVar() class defined below
+                self.plotVar_IntVars[ plotVariable ] = IntVar()
 
         # Set Salinity, Stage, Flow, Volume, Rain, ET as defaults
         self.plotVar_IntVars[ 'Salinity'    ].set( 1 )
@@ -801,31 +809,41 @@ class GUI:
         axes.fmt_xdata = DateFormatter('%Y-%m-%d')
         
         # matplotlib does not default ticks well... arghhh
-        if period_record_days < 32 :
+        if period_record_days < 15 :
             axes.xaxis.set_major_locator  ( DayLocator() )
             axes.xaxis.set_major_formatter( DateFormatter('%d') )
 
-        elif period_record_days < 181 :
+        elif period_record_days < 91 :
             axes.xaxis.set_major_locator  ( MonthLocator() )
             axes.xaxis.set_major_formatter( DateFormatter('%m-%d') )
             axes.xaxis.set_minor_locator  ( DayLocator(bymonthday=[7,14,21]))
             axes.xaxis.set_minor_formatter( DateFormatter('%d') )
 
-        elif period_record_days < 366 :
+        elif period_record_days < 181 :
             axes.xaxis.set_major_locator  ( MonthLocator() )
             axes.xaxis.set_major_formatter( DateFormatter('%b-%d') )
             axes.xaxis.set_minor_locator  ( DayLocator(bymonthday=[15]))
             axes.xaxis.set_minor_formatter( DateFormatter('%d') )
 
-        elif period_record_days < 731 :
+        elif period_record_days < 366 :
             axes.xaxis.set_major_locator  ( MonthLocator() )
-            axes.xaxis.set_major_formatter( DateFormatter('%b-%d') )
+            axes.xaxis.set_major_formatter( DateFormatter('%b') )
+
+        elif period_record_days < 731 :
+            axes.xaxis.set_major_locator  ( YearLocator() )
+            axes.xaxis.set_major_formatter( DateFormatter('%Y') )
+            axes.xaxis.set_minor_locator  ( MonthLocator(bymonth=[3,5,7,9,11]))
+            axes.xaxis.set_minor_formatter( DateFormatter('%b') )
+
+        elif period_record_days < 1826 :
+            axes.xaxis.set_major_locator  ( YearLocator() )
+            axes.xaxis.set_major_formatter( DateFormatter('%Y') )
+            axes.xaxis.set_minor_locator  ( MonthLocator(bymonth=[7]) )
+            axes.xaxis.set_minor_formatter( DateFormatter('%b') )
 
         else :
             axes.xaxis.set_major_locator  ( YearLocator() )
             axes.xaxis.set_major_formatter( DateFormatter('%Y') )
-            axes.xaxis.set_minor_locator  ( MonthLocator(bymonth=[3,6,9]) )
-            axes.xaxis.set_minor_formatter( DateFormatter('%b') )
 
         legend = axes.legend( loc = 'upper center', fontsize = 9,
                               frameon = False, labelspacing = None )
@@ -1398,3 +1416,19 @@ class GUI:
             print( '   New time: ', str( time ), flush = True ) 
 
         return True
+
+#---------------------------------------------------------------
+# 
+#---------------------------------------------------------------
+class IntVar :
+      '''Surrogate for Tk.IntVar() when non-GUI option invoked.
+    Provides set() and get() methods.'''
+
+      def __init__( self, value = 0 ):
+          self.value = value
+
+      def set( self, value ) :
+          self.value = value
+
+      def get( self ) :
+          return self.value
