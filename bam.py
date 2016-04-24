@@ -103,7 +103,7 @@ def ParseCmdLine():
                         default = '2010-01-02',
                         help    = 'End date time: -E "2010-01-02"')
 
-    parser.add_argument('-vt', '--velocity_tolerarance',
+    parser.add_argument('-vt', '--velocity_tolerance',
                         dest    = 'velocity_tol', type = float, 
                         action  = 'store', 
                         default = 0.0001,
@@ -257,6 +257,16 @@ def ParseCmdLine():
                         help    = 'Seasonal MSL: -msl data/Tide/' +\
                                   'MSL_Anomaly.csv')
 
+    parser.add_argument('-si', '--salinityInit',
+                        dest   = 'salinityInit', type = str, 
+                        action = 'store', default = 'yes',
+                        help   = 'Initialize basin salinity from gauge data.')
+
+    parser.add_argument('-gs', '--gaugeSalinity',
+                        dest   = 'gaugeSalinity', # type = bool, 
+                        action = 'store_true', default = False,
+                        help   = 'Impose basin gauge salinity where available.')
+
     parser.add_argument('-e', '--editor',
                         dest    = 'editor', type = str, 
                         action  = 'store', 
@@ -302,15 +312,15 @@ def ParseCmdLine():
                         default = 50,
                         help    = 'Salinity legend bound on map: -P 50')
 
-    parser.add_argument('-db', '--dynamicBoundaryConditions',
-                      dest   = 'dynamicBoundaryConditions', # type = bool, 
-                      action = 'store_true', default = False,
-                      help   = 'Enable dynamic boundary conditions for basins.')
-
     parser.add_argument('-fb', '--fixedBoundaryConditions',
                         dest   = 'fixedBoundaryConditions', # type = bool, 
                         action = 'store_true', default = False,
                         help   = 'Enable fixed boundary conditions for basins.')
+
+    parser.add_argument('-nb', '--noDynamicBoundaryConditions',
+                      dest   = 'noDynamicBoundaryConditions', # type = bool, 
+                      action = 'store_true', default = False,
+                      help   = 'Disable basin dynamic boundary conditions.')
 
     parser.add_argument('-nr', '--noRain',
                         dest   = 'noRain', # type = bool, 
@@ -336,16 +346,6 @@ def ParseCmdLine():
                         dest   = 'noMeanSeaLevel', # type = bool, 
                         action = 'store_true', default = False,
                         help   = 'Disable mean sea level inputs.')
-
-    parser.add_argument('-gs', '--gaugeSalinity',
-                        dest   = 'gaugeSalinity', # type = bool, 
-                        action = 'store_true', default = False,
-                        help   = 'Impose basin gauge salinity where available.')
-
-    parser.add_argument('-si', '--salinityInit',
-                        dest   = 'salinityInit', type = str, 
-                        action = 'store', default = 'yes',
-                        help   = 'Initialize basin salinity from gauge data.')
 
     parser.add_argument('-ng', '--noGUI',
                         dest   = 'noGUI', # type = bool, 

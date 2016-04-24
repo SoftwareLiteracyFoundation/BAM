@@ -88,8 +88,8 @@ def InitTimeBasins( model ):
     if time_changed :
         GetBasinStageData( model ) # -bs
 
-    if model.args.dynamicBoundaryConditions and time_changed : # -db
-        GetBasinDynamicBCData( model )                         # -bc
+    if not model.args.noDynamicBoundaryConditions and time_changed : # -db
+        GetBasinDynamicBCData( model )                              # -bc
 
     if model.args.fixedBoundaryConditions :     # -fb
         GetBasinFixedBoundaryCondition( model ) # -bf

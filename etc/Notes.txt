@@ -344,7 +344,7 @@ Wet Length: 1ft: 322  2ft: 497  3ft: 351  4ft: 615  5ft: 88  6ft: 0  7ft: 0  8ft
 ------------------------------------------------------------------
 Stage Computation Check:
 Constant addition of V = 1000 m^3/s to Blue Bank at dt = 60 s Manning 0.1
-./bam.py -t 60 -E "2010-1-1 08:00" -nt -nm -ne -nr -nR -fb -si 'n' -sm 0.1
+./bam.py -t 60 -E "2010-1-1 08:00" -nt -nm -ne -nr -nR -nb -fb -si 'n' -sm 0.1
 ------------------------------------------------------------------
 0 ft area ~ 23.21 km^2
 dh = dV / A
@@ -360,7 +360,7 @@ Volumes from table below in mass balance check to stage change:
 ------------------------------------------------------------------
 Mass balance check: over 8:00 hours
 Constant addition of V = 1000 m^3/s to Blue Bank at dt = 60 s Manning 0.1
-./bam.py -t 60 -E "2010-1-1 08:00" -nt -nm -ne -nr -nR -fb -si 'n' -sm 0.1
+./bam.py -t 60 -E "2010-1-1 08:00" -nt -nm -ne -nr -nR -nb -fb -si 'n' -sm 0.1
 ------------------------------------------------------------------
 Steady state in Blue Bank
 
@@ -441,7 +441,7 @@ Q: 1ft: -1.471 2ft: -7.159 3ft: -9.908 4ft: -27.979 5ft: -5.796 (m^3/s)  Q_total
 ------------------------------------------------------------------
 Salinity Check: over 8:00 hours
 Constant addition of V = 1000 m^3 to Blue Bank at dt = 60 s Manning 0.1
-./bam.py -t 60 -nt -nm -ne -nr -nR -fb -si 'n' -sm 0.1
+./bam.py -t 60 -nt -nm -ne -nr -nR -nb -fb -si 'n' -sm 0.1
 Initial salinity in Blue Bank and surrounding basins is 35
 ------------------------------------------------------------------
 Time	Salinity (ppt)	Stage(m) Volume(m^3) Flow (m^3/dt) Salt mass  Computed
@@ -462,7 +462,7 @@ Note: At a timestep of dt = 1 s, the BAM values are verified.
 ------------------------------------------------------------------
 Salinity Check: over 8:00 hours
 Constant removal of V = -1000 m^3 from Blue Bank at dt = 60 s Manning 0.1
-./bam.py -t 60 -E "2010-1-1 08:00" -nt -nm -ne -nr -nR -fb -si 'n' -sm 0.1
+./bam.py -t 60 -E "2010-1-1 08:00" -nt -nm -ne -nr -nR -nb -fb -si 'n' -sm 0.1
 Initial salinity in Blue Bank and surrounding basins is 35
 ------------------------------------------------------------------
 Time	Salinity(ppt) Stage(m) Volume(m^3) Flow(m^3/dt)	Salt mass    Computed

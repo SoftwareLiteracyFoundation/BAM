@@ -72,7 +72,7 @@ def GeneralNotes() :
     specify a fixed flow into Blue Bank with -fb of 1000 m^3/dt, 
     t = 60 s timestep and all shoal mannings coefficients of 0.1 :
 
-    ./bam.py -t 60 -E "2010-1-1 08:00" -nt -nm -ne -nr -nR -fb -si 'n' -sm 0.1
+./bam.py -t 60 -E "2010-1-1 08:00" -nt -nm -ne -nr -nR -nb -fb -si 'n' -sm 0.1
 
     Blue Bank should then equilibriate over 8 hours to:
 

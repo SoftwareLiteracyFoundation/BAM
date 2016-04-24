@@ -45,10 +45,10 @@ class Basin:
         # Volume transports
         self.shoal_transport = 0.   # (m^3/timestep) Sum : Shoal Q_total * dt
         self.rainfall        = 0.   # (m^3/timestep)
-        self.runoff_flow     = 0.   # (m^3/timestep) imposed flow
-        self.runoff_EVER     = 0.   # (m^3/timestep) EDEN stage over shoals
-        self.groundwater     = 0.   # (m^3/timestep)
         self.evaporation     = 0.   # (m^3/timestep)
+        self.runoff_BC       = None # (m^3/timestep) imposed flow
+        self.runoff_EVER     = None # (m^3/timestep) EDEN stage over shoals
+        self.groundwater     = None # (m^3/timestep)
 
         self.shoal_nums = set() # Shoal numbers : keys in Shoals map, for gui
         self.Shoals     = []    # Shoals
@@ -153,9 +153,22 @@ class Basin:
                 elif plotVariable == 'Evaporation' :
                     data_value = self.evaporation / self.model.timestep
                 elif plotVariable == 'Runoff' :
-                    data_value = self.runoff_EVER / self.model.timestep
+                    if self.runoff_EVER and self.runoff_BC :
+                        runoff = self.runoff_EVER + self.runoff_BC
+                    elif self.runoff_EVER :
+                        runoff = self.runoff_EVER
+                    else :
+                        runoff = self.runoff_BC # could be None
+
+                    if runoff :
+                        data_value = runoff / self.model.timestep
+                    else :
+                        data_value = runoff # None
                 elif plotVariable == 'Groundwater' :
-                    data_value = self.groundwater / self.model.timestep
+                    if self.groundwater :
+                        data_value = self.groundwater / self.model.timestep
+                    else :
+                        data_value = self.groundwater # None
                 else :
                     msg = 'CopyDataRecord: ' + self.name + ' ' + plotVariable +\
                         ' is not supported for plotting.\n'

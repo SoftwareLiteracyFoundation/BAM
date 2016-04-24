@@ -453,7 +453,7 @@ class Model:
 
         #--------------------------------------------------------
         # Dynamic timeseries flow or head (-db) from the -bc file
-        if self.args.dynamicBoundaryConditions :
+        if not self.args.noDynamicBoundaryConditions :
 
             # Flow (volume) BC's
             if self.dynamic_flow_boundary :
@@ -464,7 +464,7 @@ class Model:
                     # Convert to volume per timestep
                     volume_t = cubic_meter_second * self.timestep
 
-                    Basin.runoff_flow   = volume_t
+                    Basin.runoff_BC     = volume_t
                     Basin.water_volume += volume_t
 
             # Stage BC's
