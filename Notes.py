@@ -33,9 +33,10 @@ ET       PET_1999-9-1_2015-12-8.csv                 1999-09-01  2015-12-08
 Salinity DailySalinityFilled_1999-9-1_2015-12-8.csv 1999-09-01  2015-12-08
 Tide     HourlyTide1990_2020.tar.gz (See [1])       1990-01-01  2021-01-01
 Runoff   EDEN_Stage_OffsetMSL.csv                   1999-09-01  2015-12-31
+Flow     S197_Flow_1999-9-1_2016-3-31.csv           1999-09-01  2016-03-31
 
-[1] To speed up processing of tidal data initialization, tidal data are
-    subsets of this span, i.e. 2010-01-01 through 2016-01-01. 
+[1] To speed up processing of tidal data initialization, tidal data can
+    be subsets of this span, i.e. 2010-01-01 through 2016-01-01. 
     '''
     pass
 
@@ -69,7 +70,7 @@ def LimitationNotes() :
 def GeneralNotes() :
     '''
     To check mass balance turn off all normal inputs and 
-    specify a fixed flow into Blue Bank with -fb of 1000 m^3/dt, 
+    specify a fixed flow into Blue Bank with -fb of 1000 m^3/s, 
     t = 60 s timestep and all shoal mannings coefficients of 0.1 :
 
 ./bam.py -t 60 -E "2010-1-1 08:00" -nt -nm -ne -nr -nR -nb -fb -si 'n' -sm 0.1
@@ -80,14 +81,14 @@ def GeneralNotes() :
       Stage: 0.01 (m)
       Salinity: 17.76 (g/kg)
       Volume: 0.0425 (km^3)
-      Shoal Flux: 60294.74 (m^3/t)
+      Shoal Flux: 1004.91 (m^3/s)
 
     For a more accurate rendition, run with -t 1 :
     Blue Bank : dt = 1 s
       Stage: 0.01 (m)
       Salinity: 17.77 (g/kg)
       Volume: 0.0425 (km^3)
-      Shoal Flux: 1000.0 (m^3/t)
+      Shoal Flux: 1000.0 (m^3/s)
 
     See etc/Notes.txt for mass balance calculation verification. 
 
@@ -95,7 +96,7 @@ def GeneralNotes() :
 
     Rain is taken from the nearest rain station, with the basin : gauge
     mapping defined in the basinParameter -bp file.  Salinities can be 
-    fixed from the observed data, not simulated with -gs for basins : gauges
+    fixed from the observed data (not simulated) with -gs for basins : gauges
     listed in the basinParameter -bp file. 
     '''
     pass
