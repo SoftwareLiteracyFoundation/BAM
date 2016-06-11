@@ -70,12 +70,20 @@ Ocean.Salinity = function(
   for ( imf in imfs ){
     Salinity = Salinity + IMF[,imf]
   }
+
+  for ( imf in imfs ) {
+    mean.freq = mean( EMD $ hinstfreq[, imf] )
+    print( paste( 'IMF', imf, '<T_day> =', round( 1 / mean.freq / 86400 ) ) )
+  }
   
   df = data.frame( Date = as.POSIXct( Date, origin = '1970-1-1' ),
                    Salinity = round( Salinity, 2 ) )
-  write.csv( df, file = paste( path, out.file, sep = '' ),
-             row.names = FALSE, quote = FALSE )
-
+  
+  if ( ! is.null( out.file ) ) {
+    write.csv( df, file = paste( path, out.file, sep = '' ),
+               row.names = FALSE, quote = FALSE )
+  }
+  
   #-----------------------------------------------
   if ( length( dev.list() ) == 0 ) {
     newPlot()
@@ -83,6 +91,6 @@ Ocean.Salinity = function(
   plot ( Date, sig, type = 'l', col = 'red', lwd = 2, ylim = c(25,45) )
   lines( Date, df $ Salinity, col = 'blue', lwd = 3 )
 
-  invisible( list( EMD, df ) )
+  invisible( list( EMD = EMD, df = df ) )
 }
 

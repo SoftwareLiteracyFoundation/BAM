@@ -17,6 +17,9 @@ def InstallationNotes() :
   sudo pip3    install pyshp       # https://github.com/GeospatialPython/pyshp
   sudo pip3 install git+https://github.com/uqfoundation/dill.git@master
   sudo pip3 install git+https://github.com/uqfoundation/multiprocess.git@master
+
+  Editor: gedit 
+  sudo apt-get install gedit
     '''
     pass
 
