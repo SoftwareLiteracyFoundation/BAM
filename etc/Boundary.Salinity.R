@@ -15,6 +15,13 @@ Gulf.Salinity = function(
   # Gulf Salinity 
   # Take the mean of the 4 western station salinities
   S = rowMeans( cbind( df $ MK, df $ JK, df $ LR, df $ PK ) )
+  # Estimate variance/std dev across each set of stations
+  Var = apply( cbind( df $ MK, df $ JK, df $ LR, df $ PK ), MARGIN = 1,
+               FUN = var )
+  Std.dev = sqrt( Var )
+  print( paste( 'Mean std dev =', round( mean( Std.dev ), 1 ), 'N =',
+                length( Std.dev ) ) )
+  
 
   #-----------------------------------------------
   if ( length( dev.list() ) == 0 ) {
@@ -25,11 +32,18 @@ Gulf.Salinity = function(
   lines( Date, df $ LR, col = 'darkgreen' )
   lines( Date, df $ PK, col = 'brown' )
   lines( Date, S, lwd = 3 )
+  abline( h = 35.7, lty = 2, lwd = 4, col = 'red' )
+  legend( 'topleft', legend = c( 'MK', 'JK', 'LR', 'PK', 'Avg' ), lwd = 6,
+          col = c( 'red', 'blue', 'darkgreen', 'brown', 'black' ),
+          cex = 1.3 )
 
   df = data.frame( Date = as.POSIXct( Date, origin = '1970-1-1' ),
                    Salinity = round( S, 2 ) )
-  write.csv( df, file = paste( path, out.file, sep = '' ),
-             row.names = FALSE, quote = FALSE )
+  
+  if ( ! is.null( out.file ) ) {
+    write.csv( df, file = paste( path, out.file, sep = '' ),
+               row.names = FALSE, quote = FALSE )
+  }
 
   invisible( df )
 }
