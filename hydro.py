@@ -1,3 +1,5 @@
+'''Hydraulic functions for the Bay Assessment Model (BAM)'''
+
 # Python distribution modules
 from math import sqrt
 

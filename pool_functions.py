@@ -1,3 +1,5 @@
+'''Multiprocess function to read tidal boundary data for the Bay Assessment
+   Model (BAM)'''
 
 # Python distribution modules
 from datetime import datetime

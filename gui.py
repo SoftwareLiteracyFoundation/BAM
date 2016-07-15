@@ -1,3 +1,4 @@
+'''tkinter Tcl/Tk GUI for the Bay Assessment Model (BAM)'''
 
 # Python distribution modules
 from subprocess  import Popen

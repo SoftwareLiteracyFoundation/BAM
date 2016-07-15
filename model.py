@@ -1,3 +1,4 @@
+'''Model class for the Bay Assessment Model (BAM)'''
 
 # Python distribution modules
 from os          import mkdir

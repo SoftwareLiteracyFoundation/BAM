@@ -1,3 +1,4 @@
+'''Basin class for the Bay Assessment Model (BAM)'''
 
 # Python distribution modules
 from collections import OrderedDict as odict

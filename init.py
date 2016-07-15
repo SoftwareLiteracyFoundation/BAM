@@ -1,3 +1,4 @@
+'''Initialization functions for the Bay Assessment Model (BAM)'''
 
 # Python distribution modules
 from os          import cpu_count
