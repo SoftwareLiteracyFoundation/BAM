@@ -21,8 +21,7 @@ def Hydro( model ) :
     calculated from the length of each wet_area at each depth increment 
     of each shoal times a water level height.  If the downsteam water
     depth is positive, it is used as the height.  If not, the hydraulic
-    radius of the flow is used if it is postive, otherwise, a heuristic
-    2/3 of the upstream depth is used. 
+    radius of the flow is used. 
 
     The flux of water across each shoal is calculated as Fj = Σ Vij * Aij.
     
@@ -58,14 +57,14 @@ def ShoalVelocities( model ) :
     iterative solution between the two dependent variables of v and R 
     (R = hydraulic radius = ratio of cross sectional flow area to the
     wetted perimeter, which for a shallow, broad cross section can be 
-    approximated by the average depth) via Equations 1.13 & 1.15. 
+    approximated by the average depth) via Cosby (2010) equations 1.13 & 1.15. 
 
     If the downstream level is higher than h_crit, a non-critical solution 
     is calculated using an iteration for the two dependent variables v and R
-    via Equations 1.10 & 1.11. 
+    via Cosby (2010) equations 1.10 & 1.11. 
 
     In either case, the velocity from the last time step, v0, and the water 
-    levels from the current time step are used in Equations 1.10 or 1.14 to 
+    levels from the current time step are used in equations 1.10 or 1.14 to 
     estimate the initial hydraulic radius, R0. A first estimate of the velocity 
     for the current time step, v1, is then calculated using the appropriate
     equation. The new velocity v1 is used to update the hydraulic radius R1, 
@@ -272,10 +271,6 @@ def MassTransport( model ) :
                 h_flow = h_downstream
             else :
                 h_flow = hydraulic_radius
-                #if hydraulic_radius > 0 :
-                #    h_flow = hydraulic_radius
-                #else :
-                #    h_flow = 2 * Shoal.h_upstream[ depth_ft ] / 3
 
             cross_section = h_flow * Shoal.wet_length[ depth_ft ]
 
