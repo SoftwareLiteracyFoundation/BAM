@@ -47,6 +47,23 @@ Simulation complete. Elapsed time: 27 (s)  : Created MassTransportFunction
 ----------------------------------------------------------------
 MSL offset 2008 - 2015 : -14.8 cm NAVD 
 
+Mean sea level in etc/MonthlyMean_1999-9_2015-12.csv
+and MonthlyMean_1999-9_2015-12.ods has:
+
+Date,       KeyWestMSL, VacaKeyMSL, VirginiaKeyMSL, MeanMSL, Anomaly_m
+1999-09-15, -0.056,     -0.026,     -0.032,         -0.038,  0.11
+1999-10-15, -0.08,      -0.075,     -0.059,         -0.071,  0.077
+...
+2015-11-15, -0.063,     -0.039,     -0.06,          -0.054,  0.094
+2015-12-15, -0.106,     -0.072,     -0.098,         -0.092,  0.056
+
+*MSL is the monthly mean sea level from NOAA plus the annual seasonal
+cycle.  The monthly mean sea level from NOAA is with respect to the MSL
+datum. *MSL has been converted to NAVD.
+
+MeanMSL is the average of the three *MSL in NAVD.
+Anomaly_m is the MeanMSL NAVD converted to MSL over 2008-2015 (+14.8 cm)
+
 
 ----------------------------------------------------------------
 Runoff comparison to FATHOM via etc/CompareRunoff.R
