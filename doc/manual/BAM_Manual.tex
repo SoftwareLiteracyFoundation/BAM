@@ -1,0 +1,93 @@
+
+\include{Document_Data}
+
+\documentclass[twoside]{article}
+
+\include{sfnrc_style}
+
+\usepackage[titletoc,title]{appendix}
+\usepackage{parskip}  % Non-indented, spaced paragraphs
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage[space]{grffile} % Allow spaces in graphic file names
+\usepackage{subfig}
+%\usepackage{float}    % For exact [H] figure placement
+\usepackage{floatrow}  % For side captions, incompatible with {float}
+
+\setlength{\parskip}{15pt}
+
+\begin{document}
+\pagestyle{sfnrctech1}
+
+%------------------------------------------------------------------------
+% COVER PAGE:
+%------------------------------------------------------------------------
+\include{Cover_Page}
+
+%------------------------------------------------------------------------
+% TITLE PAGE:
+%------------------------------------------------------------------------
+\include{Title_Page}
+
+%------------------------------------------------------------------------
+% EXECUTIVE SUMMARY:
+%------------------------------------------------------------------------
+\pagenumbering{roman} % use roman numerals for page numbers
+\setcounter{page}{1}  % begin numbering pages here
+
+\include{Executive_Summary}
+
+%------------------------------------------------------------------------
+%TABLE OF CONTENTS:
+%------------------------------------------------------------------------
+\begingroup
+\sffamily
+\tableofcontents
+\endgroup
+\clearpage
+
+%------------------------------------------------------------------------
+% AUTHORS AND ACKNOWLEDGEMENTS:
+%------------------------------------------------------------------------
+\include{Acknowledgements}
+
+%------------------------------------------------------------------------
+% FOREWORD:
+%------------------------------------------------------------------------
+% \include{Foreword}
+
+%------------------------------------------------------------------------
+% REPORT TEXT:
+%------------------------------------------------------------------------
+
+\pagenumbering{arabic} % use arabic numbers for pages
+
+\include{BAM_Manual_Content}
+
+%------------------------------------------------------------------------
+% LITERATURE CITED:
+%------------------------------------------------------------------------
+
+\include{Bibliography}
+
+%------------------------------------------------------------------------
+% APPENDICES:
+%------------------------------------------------------------------------
+\begin{appendices}
+\include{License}
+\end{appendices}
+
+%\hspace values below need to match with
+%\renewcommand*\l@section{\@dottedtocline values in sfnrc_style.tex
+
+%\addtocontents{toc}{\protect\vspace{1.0em}\hspace{-1.5em}APPENDICES\par\protect}
+
+%\addtocontents{toc}{\protect\vspace{0.5em}A:\titleinfoAppendixA\par\protect}
+
+
+%-----------------------------------------------------------------
+% END MATTER:
+%-----------------------------------------------------------------
+
+\cleardoublepage
+\end{document}
