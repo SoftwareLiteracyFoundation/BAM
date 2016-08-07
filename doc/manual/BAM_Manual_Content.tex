@@ -39,16 +39,16 @@ The physical basis is interbasin Mannings flow over shoals with conservation of 
   \item No wave propagation, stage/volume changes are instantaneous.
   \item No diffusion/mixing, concentration equilibriums are instantaneous.
   \item Mannings flow over deep or narrow shoals is not justifiable.
-  \item Water levels are not geodetic, but anomalies with respect to zero shoal depth. 
-  \item Geomorphic bank and shoal changes over time are ignored.
-  \item The model is single layer.  Groundwater exchange is either a component of aggregate runoff between basins or an imposed boundary condition.
 \end{enumerate}
 
 \vspace{12pt}
-\noindent The representation of basins, shoals and forcings is incomplete:
+\noindent The domain representation is incomplete:
 
 \begin{enumerate}
   \itemsep-8pt
+  \item Water levels are not geodetic, but anomalies with respect to zero shoal depth. 
+  \item Geomorphic bank and shoal changes over time are ignored.
+  \item The model is single layer.  Groundwater exchange is either a component of aggregate runoff between basins or an imposed boundary condition.
   \item There are shoals with missing channels. For example, the Florida Keys are largely considered flow barriers, ignoring many channels.
   \item Evaporation is a single daily timeseries applied to the entire domain.
   \item Rainfall is estimated from a sparse set of daily timeseries.
@@ -62,9 +62,7 @@ The physical basis is interbasin Mannings flow over shoals with conservation of 
 \label{sec:Model Domain}
 %----------------------------------------------------------------
 %----------------------------------------------------------------
-BAM decomposes Florida Bay into 54 basins based on the geomorphology of the mangroves, buttonwood banks, and shoals separating individual basins (figure \ref{fig:BAM Domain}).  Basin bathymetry is partitioned into 10 depth classes in 0.305 m (1 ft) increments following \citet{Cosby2010}.  There are 410 shoals linking the basins each characterized with a shoal width, land length (zero depth), and submerged lengths partitioned into the same 10 depth classes as the basins. Each shoal also has a Manning's friction coefficient applied over the shoal width, so that the shoal width is parallel to the interbasin flow path while the shoal lengths are perpendicular to the flow path. 
-
-Shoal data are derived from the work of \citet{Cosby2010}, however a review of the shoals bordering domain boundaries with the Florida Keys and Everglades identified numerous deficiencies ignoring well-established flow paths between the boundaries and model basins.  These shoals were adjusted and calibrated to produce water level dynamics inside the appropriate basins consistent with observed water level data. 
+BAM decomposes Florida Bay into 54 basins based on the geomorphology of the mangroves, buttonwood banks, and shoals separating individual basins (figure \ref{fig:BAM Domain}).  Basin bathymetry is partitioned into 10 depth classes in 0.305 m (1 ft) increments following \citet{Cosby2010}.  There are 410 shoals linking the basins each characterized by length segments partitioned into the same 0.305 m depth classes along with land segments representing vegetated banks.  The width of each shoal defines the flow path distance between adjoining basins and is characterized with a Manning's friction coefficient applied over the shoal width.  The interbasin flow volume at any point in time therefore consists of a 2-dimensional area defined by the cumulative sub-areas of lengths and depths perpendicular to the flow path, multiplied by the shoal width parallel to the flow path. \\
 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 \begin{figure}[H]
@@ -81,6 +79,8 @@ Shoal data are derived from the work of \citet{Cosby2010}, however a review of t
   }
 \end{figure}
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Shoal data are derived from the work of \citet{Cosby2010}, however a review of shoals bordering domain boundaries with the Florida Keys and Everglades identified numerous deficiencies ignoring well-established flow paths between the boundaries and model basins.  These shoals were adjusted and calibrated to produce water level dynamics inside the appropriate basins consistent with observed water level data. 
 
 
 %----------------------------------------------------------------
@@ -254,7 +254,7 @@ Observed and reconstructed rain at the stations in eastern Florida Bay is shown 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 \begin{figure}[H]
 \begin{center}
-  \includegraphics[ width = 0.95\textwidth ]{graphics/EastFLBayRainFilled.png}
+  \includegraphics[ width = 1\textwidth ]{graphics/EastFLBayRainFilled.png}
   \caption{ East Florida Bay observed rain (black) and reconstructed rain (red). }
   \label{fig:East Florida Bay rain}
 \end{center}
@@ -264,13 +264,13 @@ Observed and reconstructed rain at the stations in eastern Florida Bay is shown 
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 \begin{figure}[H]
 \begin{center}
-  \includegraphics[ width = 0.95\textwidth ]{graphics/WestFLBayRainFilled.png}
+  \includegraphics[ width = 1\textwidth ]{graphics/WestFLBayRainFilled.png}
   \caption{ West Florida Bay observed rain (black) and reconstructed rain (red). }
   \label{fig:West Florida Bay rain}
 \end{center}
 \end{figure}
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-\clearpage
+%\clearpage
 
 Estimation of total rain over basins tens to hundreds of square kilometers in area is notoriously challenging based on sparse, point measurements.  To afford user control over selection and effective areal input of rain, a mapping of basin to rain gauge stations is specified in the basin parameters (\texttt{-bp, [--basinParameter]}) file.  An excerpt of the basin parameter file is shown here:
 \small
@@ -654,7 +654,7 @@ Model output is exclusively in UTF-8 encoded comma-delimited variable (\texttt{.
 
 Basin output variables can be selected in the graphical user interface, default variables are \texttt{Salinity, Stage, Flow, Volume, Rain, Evaporation, Runoff}.
 
-The output directory is defined by the \texttt{-bo [--basinOutput]} option with default: \texttt{home\_dir/BAM.out} where \texttt{home\_dir} is the value of the \texttt{HOME} environment variable if it is defined, otherwise the current working directory.
+The output directory is defined by the \texttt{-bo [--basinOutput]} option with default: \newline \texttt{home\_dir/BAM.out} where \texttt{home\_dir} is the value of the \texttt{HOME} environment variable if it is defined, otherwise the current working directory.
 
 Messages generated during a model run are written to the \texttt{RunInfo.txt} file in the model output directory. 
 
@@ -855,24 +855,18 @@ optional arguments:
 %----------------------------------------------------------------
 %----------------------------------------------------------------
 The graphical user interface (GUI) is enabled by default (figure \ref{fig:BAM_GUI}). The GUI can be disabled with the \texttt{-ng --noGUI} option.  The GUI Map updates a color-coded representation of basin stage or salinity during a run at intervals specified by the \texttt{-mi [--mapInterval]} option (default: 1 day, 0 hours).  Since the function which executes a model run (\texttt{Model.Run()}) is not exposed to the GUI main loop, there is currently no user interaction processed during a model run.  This may change in future versions. 
+
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 \begin{figure}[H]
-  \floatbox[{ \capbeside\thisfloatsetup{ capbesideposition = {right, center},
-                                         capbesidewidth = 2.5cm } }]
-  {figure}[\FBwidth]
-  {
-     \includegraphics[ width = 0.9\textwidth ]{graphics/BAM_GUI.png}
-  }
-  {
-     \caption{ \newline \newline BAM graphical user interface. }
-     \label{fig:BAM_GUI}
-  }
+  \includegraphics[ width = 1\textwidth ]{graphics/BAM_GUI.png}
+  \caption{BAM graphical user interface.}
+  \label{fig:BAM_GUI}
 \end{figure}
 %~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The main window is divided into 6 sections:
+\vspace{-1em}
+The main window is divided into 6 sections:\\[-2em]
 \begin{enumerate}
-  %\itemsep-8pt
+  \itemsep-2pt
   \item Menu bar
   \item Basin listbox
   \item Message window
@@ -880,9 +874,10 @@ The main window is divided into 6 sections:
   \item Time display and entry boxes
   \item Map
 \end{enumerate}
-each described below. 
+\vspace{-1em}
+each described below.
 
-\clearpage 
+%\clearpage 
 
 %----------------------------------------------------------------
 \subsection{Menu}
