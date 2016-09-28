@@ -27,8 +27,8 @@ CreateETData = function( path = '../data/ET/',
       i.yday = which( date.lt $ yday == day )
       
       yday.data = df[ i.yday, 'PET' ]
-      i.na      = which( is.na( yday.data ) )
-      yday.data = yday.data[ -i.na ]
+      j.na      = which( is.na( yday.data ) )
+      yday.data = yday.data[ -j.na ]
       
       data.yday[[ day ]] = yday.data
     }
@@ -41,11 +41,28 @@ CreateETData = function( path = '../data/ET/',
       
       if ( yday == 0 ) { yday = 1 }
       
+      print( paste( "filling at i =", i, 'yday =', yday ) )
+      print( data.yday[[ yday ]] )
+      
       # Choose randomly from the available data for this yearday
-      value = mean( sample( data.yday[[ yday ]], size = 2, replace = TRUE ) )
-      #value = sample( data.yday[[ yday ]], size = 1 )
+      if ( length( data.yday[[ yday ]] ) ) {
+        value = mean( sample( data.yday[[ yday ]], size = 2, replace = TRUE ) )
+        #value = sample( data.yday[[ yday ]], size = 1 )
+      }
+      else {
+        value = NA
+      }
+                  
       # Assing to the missing data
       df[ i, 'PET' ] = value
+      print( paste( 'Replaced NA at', i, 'with', value ) )
+    }
+
+    # Check for problem 
+    i.na = which( is.na( df $ PET ) )
+    if ( length( i.na ) ) {
+      print( paste( "Error: problem persists at these indices:" ) )
+      print( i.na )
     }
   }
 
