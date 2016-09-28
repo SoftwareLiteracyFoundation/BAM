@@ -206,9 +206,9 @@ def ParseCmdLine():
                         dest    = 'ET', type = str, 
                         action  = 'store', 
                         default = 'data/ET/' +\
-                                  'PET_1999-9-1_2015-12-8.csv',
+                                  'PET_1999-9-1_2015-12-31.csv',
                         help    = 'PET data file: -et ' +\
-                                  'data/ET/PET_1999-9-1_2015-12-8.csv' )
+                                  'data/ET/PET_1999-9-1_2015-12-31.csv' )
 
     parser.add_argument('-es', '--ET scale',
                         dest    = 'ET_scale', type = float, 
