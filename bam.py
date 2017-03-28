@@ -32,12 +32,12 @@ def main():
       -------------------------------------------------------------
       Flush output files
       Plot archived data with run id
-      Replace shoal hydro dictionaries with explicitly indexed numpy arrays?
-      Replace numeric lists with pre-allocated numpy arrays?
-      Break the Run() out into a multiprocess with queue or pipe comms : Pause
+      Add I/O file list to RunInfo.txt
+      Hardcoded boundary basins : read from config file
       Redo shapefile/init files to include new boundary basins
       Remove phantom shoals that don't connect basins
-      Hardcoded boundary basins : read from config file
+      Replace shoal hydro dictionaries with explicitly indexed numpy arrays?
+      Replace numeric lists with pre-allocated numpy arrays?
       Add Help (Notes.py __doc__ etc...)
     '''
 
@@ -51,7 +51,7 @@ def main():
 
     # Instantiate and initialize the main Model class and its
     # Basins and Shoals maps
-    model = bam_model.Model( root, args )
+    model = bam_model.Model( args )
     
     # Create GUI
     model.gui = gui.GUI( root, model )
@@ -351,6 +351,11 @@ def ParseCmdLine():
                         dest   = 'noGUI', # type = bool, 
                         action = 'store_true', default = False,
                         help   = 'Disable GUI.')
+
+    parser.add_argument('-nT', '--noThread',
+                        dest   = 'noThread', # type = bool, 
+                        action = 'store_true', default = False,
+                        help   = 'Run simulation loop in local process.')
 
     parser.add_argument('-D', '--DEBUG',
                         dest   = 'DEBUG', # type = bool, 
