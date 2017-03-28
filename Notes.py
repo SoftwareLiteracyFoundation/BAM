@@ -2,31 +2,26 @@
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
-def InstallationNotes() :
+def Installation() :
     '''
     Installation:
 
-  sudo apt-get install python3
-  sudo apt-get install python3-tk
-  sudo apt-get install tk-dev
-  sudo apt-get install libffi-dev  # for cairocffi/matplotlib.backends
-  sudo apt-get install python3-pip
-  sudo pip3    install cairocffi   # for matplotlib.backends
-  sudo pip3    install numpy
-  sudo pip3    install scipy
-  sudo pip3    install matplotlib
-  sudo pip3    install pyshp       # https://github.com/GeospatialPython/pyshp
-  sudo pip3 install git+https://github.com/uqfoundation/dill.git@master
-  sudo pip3 install git+https://github.com/uqfoundation/multiprocess.git@master
-
-  Editor: gedit 
-  sudo apt-get install gedit
+    sudo apt-get install python3
+    sudo apt-get install python3-tk
+    sudo apt-get install tk-dev
+    sudo apt-get install libffi-dev  # for cairocffi/matplotlib.backends
+    sudo apt-get install python3-pip
+    sudo pip3    install numpy
+    sudo pip3    install scipy
+    sudo pip3    install cairocffi   # for matplotlib.backends
+    sudo pip3    install matplotlib
+    sudo pip3    install pyshp       # https://github.com/GeospatialPython/pyshp
     '''
     pass
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
-def DataNotes() :
+def Data() :
     '''
     Available data for boundary conditions.
 
@@ -40,13 +35,14 @@ Runoff   EDEN_Stage_OffsetMSL.csv                   1999-09-01  2015-12-31
 Flow     S197_Flow_1999-9-1_2016-3-31.csv           1999-09-01  2016-03-31
 
 [1] To speed up processing of tidal data initialization, tidal data can
-    be subsets of this span, i.e. 2010-01-01 through 2016-01-01. 
+    be subsets of this span, i.e. 2010-01-01 through 2016-01-01. See the
+    (-bt, --basinTide) option and the associated init file. 
     '''
     pass
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
-def LimitationNotes() :
+def Limitations() :
     '''
     This is a 'basin' model, not a finite element model. The physical basis
     is inter-basin Mannings flow over shoals with conservation of mass. 
@@ -65,14 +61,21 @@ def LimitationNotes() :
        The Keys are largely considered flow barriers, ignoring many channels.
     2) Evaporation is a single daily timeseries applied to the entire domain.
     3) Rainfall is a sparse set of daily timeseries. Single or multiple 
-       gauges can be wieghted, summed, and applied to a basin.
+       gauges can be weighted, summed, and applied to a basin.
     '''
     pass
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
-def GeneralNotes() :
+def General() :
     '''
+    Basin parameters are initialized in the basinInit -bi file.
+
+    Rain is taken from the nearest rain station, with the basin : gauge
+    mapping defined in the basinParameter -bp file.  Salinities can be 
+    fixed from the observed data (not simulated) with -gs for basins : gauges
+    listed in the basinParameter -bp file. 
+
     To check mass balance turn off all normal inputs and 
     specify a fixed flow into Blue Bank with -fb of 1000 m^3/s, 
     t = 60 s timestep and all shoal mannings coefficients of 0.1 :
@@ -95,19 +98,12 @@ def GeneralNotes() :
       Shoal Flux: 1000.0 (m^3/s)
 
     See etc/Notes.txt for mass balance calculation verification. 
-
-    Basin parameters are initialized in the basinInit -bi file.
-
-    Rain is taken from the nearest rain station, with the basin : gauge
-    mapping defined in the basinParameter -bp file.  Salinities can be 
-    fixed from the observed data (not simulated) with -gs for basins : gauges
-    listed in the basinParameter -bp file. 
     '''
     pass
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
-def DevelopmentNotes() :
+def Development() :
     '''
     Geospatial Python pyshp: Reads shape files for basins and shoals
     https://github.com/GeospatialPython/pyshp
@@ -156,54 +152,48 @@ def DevelopmentNotes() :
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
-def MultiprocessNotes() :
+def Multiprocessing() :
     '''
+    Currently, multiprocessing.pool.Pool.map_async() is used to 
+    parallelize reading and interpolation of tidal boundary data. 
+
     The Python multiprocessing module uses Pickle to serialize objects
     to/from the mutiprocesses, but some things can't be pickled. 
     Imo, this is a broken part of the OO Python implementation.
-    To work around this, there is a user contributed fork of 
-    multiprocessing named multiprocess which uses the dill 
-    serialization module instead of pickle.  The multiprocess 
-    module therefore allows class instances to be passed to/from
-    the processes.
-
-    This is useful since we return a scipy interpolation function
-    from ReadTideBoundaryData() and multiprocessing can't. 
-
-    However, even multiprocess doesn't handle Tk objects. So there
-    is a kludge to work around this and functions have been 
-    isolated into pool_functions.py.
+    So there is a kludge to work around this by isolating the objects
+    and functions into pool_functions.py. 
 
     See:
-    https://github.com/uqfoundation/multiprocess.git
-    https://github.com/uqfoundation/dill.git
     http://stackoverflow.com/questions/1816958/
            cant-pickle-type-instancemethod-when-using-pythons-
            multiprocessing-pool-ma?lq=1
-    http://stackoverflow.com/questions/19984152/
-           what-can-multiprocessing-and-dill-do-together
     http://stackoverflow.com/questions/8804830/
            python-multiprocessing-pickling-error
 
-    Currently, multiprocess is used to parallelize reading and 
-    interpolation of tidal boundary data. 
+    Note that a 'solution' proposed in the above threads is to use
+    a fork of multiprocessing called multiprocess that uses the dill
+    serializer instead of pickle. While this does handle a wider-range
+    of objects, it doesn't work for embedded Tk objects. 
 
     To test use of multiprocess in general, the code was reorganzed 
     to remove class and graphics objects from the Shoal class, which
     required making the Basins and Shoals maps global, and was tested
-    with multiprocess and multiprocessing parallelizing the shoal
-    loop in hydro.MassTransport and in hydro.ShoalVelocities. The 
-    result was significantly slower run times and exhaustion of memory
-    resources since there are 410 shoals and the loops are not deep
-    enough to CPU-limit across processes.  Process-based parallelism 
-    with pools is ill-posed for this application.
+    with multiprocessing parallelizing the shoal loop in 
+    hydro.MassTransport and in hydro.ShoalVelocities.  The result was 
+    significantly slower run times and exhaustion of memory resources
+    since there are 410 shoals and the loops are not deep enough to 
+    CPU-limit across processes.  Process-based parallelism with pools 
+    is ill-posed for this application.
     '''
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
-def LegacyNotes() :
+def Legacy() :
     '''
-    FATHOM is not SI, but mixes English and metric units... :-(
+    FATHOM is not SI, but profusely mixes English and metric units... :-(
+    BAM suffers this as well, but only in that dynamic boundary timeseries
+    flow data (i.e. S197) are specified in cfs but converted to m^3/s in
+    BoundaryConditions(). 
     
     Water levels are not geodetic, but are anomalies from the shoal depth.  
     This imposes all shoal depths of 0 are at the the same elevation.

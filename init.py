@@ -11,9 +11,8 @@ from scipy import interpolate
 from numpy import array as nparray
 from numpy import zeros as npzeros
 
-# This is not the Python multiprocessing module, 
-# but a fork from github.com/uqfoundation/multiprocess
-from multiprocess import Pool
+# Worker pool to parallelize generation of tide interpolators
+from multiprocessing import Pool
 
 # Library for reading ArcGIS shapefile see:
 # https://github.com/GeospatialPython/pyshp
@@ -23,7 +22,7 @@ import shapefile
 import basins
 import shoals
 
-# Kludge since multiprocess & multiprocessing can't handle embedded Tk
+# Kludge since multiprocessing can't handle embedded Tk
 import pool_functions
 
 #-----------------------------------------------------------
@@ -405,7 +404,7 @@ def GetBasinTidalData( model ):
     is stored in the appropriate basin object.
     
     Note that this takes a long time, and has been parallelized
-    with multiprocess Pool (see below and pool_functions.py)."""
+    with multiprocessing Pool (see below and pool_functions.py)."""
     
     if model.args.DEBUG_ALL :
         print( '\n-> GetBasinTidalData', flush = True )
@@ -470,20 +469,26 @@ def GetBasinTidalData( model ):
     pool = Pool( processes = num_processes )
 
     #------------------------------------------------------------
-    # Kludge since multiprocess & multiprocessing can't handle Tk
-    # which is embedded in the Model class object. 
-    # These model class variables are extracted and explicitly passed:
-    start = model.start_time  
-    # JP add extra time to end_time for model.ReadTideBoundaryData
-    end   = model.end_time + timedelta( hours = 3 )
+    # Kludge since multiprocessing can't serialize the Tk object
+    # embedded in the Model class object. 
+    # Explicitly extract and pass args. (path, start, end):
     path  = model.args.path
+    start = model.start_time  
+    # Add extra time to end_time for model.ReadTideBoundaryData
+    end   = model.end_time + timedelta( hours = 3 )
 
-    n_row   = len( rows ) - 1
-    args    = zip( rows[ 1 : ], [start]*n_row, [end]*n_row, [path]*n_row )
+    # Create an iterable object of args to pass to Pool.map_async()
+    # rows are the list of lines from the basinTide file (-bt)
+    n_row = len( rows ) - 1
+    args  = zip( rows[ 1 : ], [start] * n_row, [end] * n_row, [path] * n_row )
+    
+    # map_async() : A variant of the map() method that returns a result object
+    # of class multiprocessing.pool.AsyncResult
     results = pool.map_async( pool_functions.ReadTideBoundaryData, args )
     #------------------------------------------------------------
 
-    result = results.get() # Must call .get() to spawn map_async()
+    # Must call AsyncResult.get() to spawn/wait for map_async() results
+    result = results.get()
 
     msg = 'finished.\n'
     err = True

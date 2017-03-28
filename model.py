@@ -6,6 +6,7 @@ from os.path     import exists as path_exists
 from time        import time, asctime, localtime
 from datetime    import timedelta, datetime
 from collections import OrderedDict as odict
+from threading   import Thread
 import tkinter as Tk
 
 strptime = datetime.strptime
@@ -29,7 +30,7 @@ class Model:
     objects, and a Shoals dictionary of Shoal objects. The Run() method
     executes a model simulation.'''
 
-    def __init__( self, root, args ):
+    def __init__( self, args ):
 
         self.Version = 'Bay Assessment Model\n' + constants.Version + '\n'
         self.args                = args
@@ -102,11 +103,42 @@ class Model:
         if self.args.DEBUG_ALL :
             print( '-> Run' )
 
+        if self.state == self.status.Running :
+            msg = 'Run Error: Model currently running.\n'
+            self.gui.Message( msg )
+            return
+
+        #-----------------------------------------------------
+        # Setup start time and status
+        if self.state == self.status.Init :
+            self.current_time = self.start_time
+
+        if self.current_time > self.end_time :
+            msg = 'Run Error: start time is after end time.\n'
+            self.gui.Message( msg )
+            return
+
+        # Run the model loop
+        self.state = self.status.Running
+
+        if self.args.noThread :
+            self.ModelLoop()
+
+        else :
+            loopThread = Thread( target = self.ModelLoop,
+                                 name = 'BAM Model Loop' )
+            loopThread.start()
+
+    #-----------------------------------------------------------
+    #
+    #-----------------------------------------------------------
+    def ModelLoop( self ):
+
         # Prepare to write output
         # Probe the basinOutputDir and create if needed
         output_dir = self.args.basinOutputDir 
         if not path_exists( output_dir ) :
-            msg = 'Run: ' + output_dir +\
+            msg = 'ModelLoop: ' + output_dir +\
                   ' is not accessible.  Creating directory.\n'
             self.gui.Message( msg )
 
@@ -114,13 +146,13 @@ class Model:
                 mkdir( output_dir )
 
             except FileNotFoundError :
-                msg = 'Run: Invalid output path ' + output_dir +\
+                msg = 'ModelLoop: Invalid output path ' + output_dir +\
                       '  simulation aborted.\n'
                 self.gui.Message( msg )
                 return                
 
             if not path_exists( output_dir ) :
-                msg = 'Run: Failed to mkdir ' + output_dir +\
+                msg = 'ModelLoop: Failed to mkdir ' + output_dir +\
                       '  simulation aborted.\n'
                 self.gui.Message( msg )
                 return
@@ -134,7 +166,7 @@ class Model:
             legend_bounds = None
 
             if mapPlotVariable not in constants.BasinMapPlotVariable :
-                msg = 'Run Error: Invalid map plot variable, using Stage.\n'
+                msg='ModelLoop Error: Invalid map plot variable, using Stage.\n'
                 self.gui.Message( msg )
                 mapPlotVariable = 'Stage'
                 legend_bounds   = self.args.stage_legend_bounds
@@ -146,22 +178,13 @@ class Model:
                 legend_bounds = self.args.stage_legend_bounds
 
             else :
-                msg = 'Run Error: ', mapPlotVariable, \
+                msg = 'ModelLoop Error: ', mapPlotVariable, \
                       'not yet supported for map, showing Stage.\n'
                 self.gui.Message( msg )
                 mapPlotVariable = 'Stage'
                 legend_bounds   = self.args.stage_legend_bounds
 
-        #-----------------------------------------------------
-        # Setup start time and status
-        if self.state == self.status.Init :
-            self.current_time = self.start_time
-
-        if self.current_time > self.end_time :
-            msg = 'Run Error: start time is after end time.\n'
-            self.gui.Message( msg )
-            return
-
+        #-----------------------------------------------------------
         run_start_time = time()
         msg = 'Start simulation from ' + str( self.start_time ) +\
               ' to ' + str( self.end_time ) + ' at ' +\
@@ -174,7 +197,6 @@ class Model:
             Basin.CopyDataRecord()
  
         zero_timedelta = timedelta() # timedelta() = zero delta time
-        self.state = self.status.Running
 
         #------------------------------------------------------------
         # Simulation loop
@@ -276,7 +298,7 @@ class Model:
             fd.close()
 
         except OSError as err :
-            msg = "\nRun: OS error: {0}\n".format( err )
+            msg = "\nModelLoop: OS error: {0}\n".format( err )
             self.gui.Message( msg )
             print( msg )
 
@@ -377,9 +399,11 @@ class Model:
                                                        self.seasonal_MSL_splrep,
                                                        der = 0 ).round( 3 )
         except ValueError as err :
-            print( 'GetTides(): interpolate seasonal_MSL at ',
-                   str( self.current_time ), '[', 
-                   str( unix_time ), ']  ', err )
+            msg = 'GetTides(): interpolate seasonal_MSL at ' + \
+                   str( self.current_time ) + '[' + \
+                   str( unix_time ) + ']  ' + err
+            self.gui.Message( msg )
+
             self.seasonal_MSL = 0
 
         # Get the tidal value for each boundary basin
@@ -397,10 +421,11 @@ class Model:
                             wl = float( Basin.boundary_function( unix_time ) )
 
                 except ValueError as err :
-                    print( 'GetTides() boundary_function basin: ', Basin.name, 
-                           ' at ',
-                           str( self.current_time ), '[', 
-                           str( unix_time ), ']  ', err )
+                    msg = 'GetTides() boundary_function basin: ' + Basin.name +\
+                           ' at ' + str( self.current_time ) + '[' +\
+                           str( unix_time ) + ']  ' + err
+                    self.gui.Message( msg )
+                    
                     wl = 0
 
                 wl += self.seasonal_MSL
