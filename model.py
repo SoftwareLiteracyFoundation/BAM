@@ -6,7 +6,7 @@ from os.path     import exists as path_exists
 from time        import time, asctime, localtime
 from datetime    import timedelta, datetime
 from collections import OrderedDict as odict
-from threading   import Thread
+from threading   import Thread, Condition
 import tkinter as Tk
 
 strptime = datetime.strptime
@@ -90,6 +90,9 @@ class Model:
 
         # Text buffer to hold messages written to runInfo.txt
         self.run_info = []
+
+        # Condition variable to pause the modelLoop
+        self.ConditionVar = Condition()
 
         self.gui = None
 
@@ -201,10 +204,20 @@ class Model:
         #------------------------------------------------------------
         # Simulation loop
         #------------------------------------------------------------
-        while self.state == self.status.Running :
+        while self.current_time <= self.end_time :
 
             if self.args.DEBUG_ALL :
                 print( self.current_time )
+
+            if self.state == self.status.Paused :
+                # Acquire the lock and Wait on the condition variable
+                # to change from Paused
+                self.ConditionVar.acquire()
+                while ( self.state == self.status.Paused ) :
+                    self.ConditionVar.wait()
+
+            if self.state == self.status.Halted :
+                break
 
             # Advance time
             self.current_time = self.current_time + \
@@ -266,8 +279,6 @@ class Model:
                 for Basin in self.Basins.values() :
                     Basin.CopyDataRecord()
 
-            if self.current_time >= self.end_time :
-                self.state = self.status.Finished
         #------------------------------------------------------------
         # End Simulation loop
         #------------------------------------------------------------
@@ -523,9 +534,65 @@ class Model:
     #-----------------------------------------------------------
     #
     #-----------------------------------------------------------
-    # def Pause( self ):
-    #     ''' '''
-    #     if self.args.DEBUG:
-    #         print( '-> Pause' )
+    def Pause( self ):
+        '''Pause and restart the ModelLoop thread using a condition
+           variable based on the status enum (Running or Paused)
+
+           The simulation loop in ModelLoop is a thread started with
+           status = Running.'''
+        if self.args.DEBUG:
+            print( '-> Pause' )
+    
+        if self.state == self.status.Paused :
+            # Revert from status Paused to status Running
+            self.ConditionVar.acquire()
+            self.ConditionVar.notify()
+            self.ConditionVar.release()
+            self.state = self.status.Running
+            
+            msg = asctime( localtime( time() ) ) + \
+                             '  Pause: Set status to Running\n'
+            self.gui.Message( msg )
+            
+        elif self.state == self.status.Running :
+            
+            # set state to Paused
+            self.state = self.status.Paused
+
+            # The ModelLoop thread simulation loop will see the status.Paused
+            # will acquire() the ConditionVar lock, and wait() while
+            # not ( self.state == self.status.Running )
+            
+            msg = asctime( localtime( time() ) ) + \
+                  '  Pause: Set status to Paused\n'
+            self.gui.Message( msg )
+            
+        else :
+            msg = 'Pause: status is not Running or Paused... ignoring.\n'
+            self.gui.Message( msg )
+
+    #-----------------------------------------------------------
     #
-    #     self.state = self.status.Paused
+    #-----------------------------------------------------------
+    def Stop( self ):
+        '''Break simulation loop'''
+        if self.args.DEBUG:
+            print( '-> Stop' )
+    
+        if self.state == self.status.Running :
+            self.state = self.status.Halted
+
+            msg = asctime( localtime( time() ) ) + \
+                  '  Stop: Set status Running to Halted\n'
+            self.gui.Message( msg )
+            
+        elif self.state == self.status.Paused :
+            # Revert from status Paused
+            self.ConditionVar.acquire()
+            self.ConditionVar.notify()
+            self.ConditionVar.release()
+            self.state = self.status.Halted
+
+            msg = asctime( localtime( time() ) ) + \
+                  '  Stop: Set status Paused to Halted\n'
+            self.gui.Message( msg )

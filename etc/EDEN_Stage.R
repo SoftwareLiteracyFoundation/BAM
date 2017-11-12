@@ -8,7 +8,7 @@ CreateStageCSV = function(
     csvFile = 'EDEN_Stage_OffsetMSL.csv',
     ylim    = c( -0.7, 0.6 ),
     start   = '1999-9-1',
-    end     = '2015-12-31',
+    end     = '2016-06-30',
     MSL     = -0.148,   # MSL = -14.8 cm NAVD
     offset  = TRUE,
     cols    = c('Date', 'S22', 'S21', 'S20', 'S19', 'S18', 'S17', 'S16', 'S15')
@@ -115,7 +115,7 @@ PlotStage = function(
     file = 'EDEN_Stage_OffsetMSL.Rdata',
     ylim = c( -0.7, 0.6 ),
     start = '1999-7-1',
-    end   = '2015-12-08',
+    end   = '2016-06-30',
     MSL   = -0.148   # MSL = -14.8 cm NAVD
 ) {
 

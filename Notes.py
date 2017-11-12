@@ -2,6 +2,30 @@
 
 #------------------------------------------------------------------
 #------------------------------------------------------------------
+def Versions() :
+    '''
+    Version 1.2 2017-11-12
+      Update data period of record to 1999-9-1 : 2016-12-31
+
+      Add Pause and Stop buttons to pause and exit the simulation loop.
+
+    Version 1.1 2017-3-27
+      Replaced multiprocess module (dill based serializer) with
+      standard Python multiprocessing module.
+
+      Moved model simulation loop from Run() into ModelLoop()
+      that can be run as a thread (-nT) allowing user interaction 
+      with the gui during model simulation.
+
+      Added non-gui option (-ng).
+
+    Version 1.0 2016-4-18
+      Initial release.
+    '''
+    pass
+
+#------------------------------------------------------------------
+#------------------------------------------------------------------
 def Installation() :
     '''
     Installation:
@@ -25,14 +49,14 @@ def Data() :
     '''
     Available data for boundary conditions.
 
-Data  File                                          Start       End
-==========================================================================
-Rain     DailyRainFilled_cm_1999-9-1_2015-12-8.csv  1999-09-01  2015-12-08
-ET       PET_1999-9-1_2015-12-8.csv                 1999-09-01  2015-12-08
-Salinity DailySalinityFilled_1999-9-1_2015-12-8.csv 1999-09-01  2015-12-08
-Tide     HourlyTide1990_2020.tar.gz (See [1])       1990-01-01  2021-01-01
-Runoff   EDEN_Stage_OffsetMSL.csv                   1999-09-01  2015-12-31
-Flow     S197_Flow_1999-9-1_2016-3-31.csv           1999-09-01  2016-03-31
+Data     File                                          Start       End
+===========================================================================
+Rain     DailyRainFilled_cm_1999-9-1_2016-12-31.csv  1999-09-01  2016-12-31
+ET       PET_1999-9-1_2016-12-31.cs                  1999-09-01  2016-12-31
+Salinity DailySalinityFilled_1999-9-1_2016-12-31.csv 1999-09-01  2016-12-31
+Tide     HourlyTide1990_2020.tar.gz (See [1])        1990-01-01  2021-01-01
+Runoff   EDEN_Stage_OffsetMSL.csv                    1999-09-01  2017-06-30
+Flow     S197_Flow_1999-9-1_2017-10-25.csv           1999-09-01  2017-10-25
 
 [1] To speed up processing of tidal data initialization, tidal data can
     be subsets of this span, i.e. 2010-01-01 through 2016-01-01. See the
@@ -98,6 +122,14 @@ def General() :
       Shoal Flux: 1000.0 (m^3/s)
 
     See etc/Notes.txt for mass balance calculation verification. 
+
+    If runtime is an issue, executing without the gui (-ng) 
+    and without a separate thread (-nT) improves runtime. 
+
+    BAM Simulation Times for 1999-9-1 : 2015-12-7
+    ---------------------------------------------
+    With gui         : 12.7 hours
+    No gui (-ng -nT) :  7.8 hours
     '''
     pass
 

@@ -1,6 +1,7 @@
 '''Constants for the Bay Assessment Model (BAM)'''
 
-Version = 'Version 1.1 2017-3-27'
+Version = 'Version 1.2 2017-11-12'
+#Version = 'Version 1.1 2017-3-27'
 #Version = 'Version 1.0 2016-4-18'
 
 # WGS Ellipsoidal Gravity Formula at 25.1 N

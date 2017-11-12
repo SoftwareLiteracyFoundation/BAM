@@ -234,8 +234,12 @@ class GUI:
                                 command = self.model.Run )
 
         # Button for model.Pause()
-        #pauseButton = ttk.Button( controlframe, text = "Pause",
-        #                          command = self.model.Pause )
+        pauseButton = ttk.Button( controlframe, text = "Pause",
+                                  command = self.model.Pause )
+
+        # Button for model.Stop()
+        stopButton = ttk.Button( controlframe, text = "Stop",
+                                 command = self.model.Stop )
 
         # Button for model.GetRecordVariables()
         recordVarButton = ttk.Button( controlframe, text = "Record",
@@ -311,24 +315,30 @@ class GUI:
         self.mapOptionMenu.grid( in_ = controlframe, row = 0 )
         initButton.grid        ( in_ = controlframe, row = 1 )
         runButton.grid         ( in_ = controlframe, row = 2 )
-        #pauseButton.grid       ( in_ = controlframe, row = 3 )
-        recordVarButton.grid   ( in_ = controlframe, row = 4 )
+        pauseButton.grid       ( in_ = controlframe, row = 3 )
+        stopButton.grid        ( in_ = controlframe, row = 4 )
 
         ttk.Separator( orient = Tk.HORIZONTAL ).grid( in_ = controlframe, 
                                                       row = 5, pady = 5,
                                                       sticky = (Tk.E,Tk.W) )
 
-        self.plotOptionMenu.grid( in_ = controlframe, row = 6 )
-        plotRunButton.grid      ( in_ = controlframe, row = 7 )
-        plotArchiveButton.grid  ( in_ = controlframe, row = 8 )
+        recordVarButton.grid   ( in_ = controlframe, row = 6 )
 
         ttk.Separator( orient = Tk.HORIZONTAL ).grid( in_ = controlframe, 
-                                                      row = 9, pady = 5,
+                                                      row = 7, pady = 5,
                                                       sticky = (Tk.E,Tk.W) )
 
-        plotGaugeSalinityButton.grid( in_ = controlframe, row = 10,
+        self.plotOptionMenu.grid( in_ = controlframe, row = 8  )
+        plotRunButton.grid      ( in_ = controlframe, row = 9  )
+        plotArchiveButton.grid  ( in_ = controlframe, row = 10 )
+
+        ttk.Separator( orient = Tk.HORIZONTAL ).grid( in_ = controlframe, 
+                                                      row = 11, pady = 5,
+                                                      sticky = (Tk.E,Tk.W) )
+
+        plotGaugeSalinityButton.grid( in_ = controlframe, row = 12,
                                       sticky = (Tk.E,Tk.W) )
-        plotGaugeStageButton.grid   ( in_ = controlframe, row = 11,
+        plotGaugeStageButton.grid   ( in_ = controlframe, row = 13,
                                       sticky = (Tk.E,Tk.W) )
         #-------------------------------------------------------------
         

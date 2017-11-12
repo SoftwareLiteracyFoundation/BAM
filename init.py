@@ -693,8 +693,12 @@ def GetBasinSalinityData( model ):
         station_salinity = dict()
 
         for j in range( 1, len( words ) ) :
-            station_salinity[ model.salinity_stations[ j-1 ] ] = \
-                float( words[ j ] )
+            if words[ j ] == 'NA' :
+                salinity_value = 'NA'
+            else:
+                salinity_value = float( words[ j ] )
+                
+            station_salinity[ model.salinity_stations[ j-1 ] ] = salinity_value
                 
         date = dates[ i ]
         key  = ( date.year, date.month, date.day )
@@ -722,7 +726,19 @@ def SetInitialBasinSalinity( model ) :
 
     for Basin in model.Basins.values() :
         if Basin.salinity_station :
-            Basin.salinity = station_salinity_map[ Basin.salinity_station ]
+            try:
+                salinity_gauge = \
+                    float( station_salinity_map[ Basin.salinity_station ] )
+            except ValueError:
+                # Salinity data can contain 'NA' if no data available...
+                salinity_gauge = 0
+
+                msg = '\nSetInitialBasinSalinity: WARNING:' +\
+                      ' Basin ' + Basin.name + ' has no available salinity' +\
+                      ' data to initialize Basin.salinity... setting to 0.\n'
+                model.gui.Message( msg )  
+            
+            Basin.salinity = salinity_gauge
         
         if model.args.DEBUG_ALL :
             print( Basin.name, ' [', str( Basin.number ),

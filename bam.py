@@ -94,14 +94,14 @@ def ParseCmdLine():
     parser.add_argument('-S', '--start',
                         dest    = 'start', type = str, 
                         action  = 'store', 
-                        default = '2010-01-01',
-                        help    = 'start date time: -S "2010-01-01"')
+                        default = '1999-9-1',
+                        help    = 'start date time: -S "1999-9-1"')
 
     parser.add_argument('-E', '--end',
                         dest    = 'end', type = str, 
                         action  = 'store', 
-                        default = '2010-01-02',
-                        help    = 'End date time: -E "2010-01-02"')
+                        default = '2016-12-31',
+                        help    = 'End date time: -E "2016-12-31"')
 
     parser.add_argument('-vt', '--velocity_tolerance',
                         dest    = 'velocity_tol', type = float, 
@@ -146,17 +146,17 @@ def ParseCmdLine():
     parser.add_argument('-bt', '--basinTide',
                     dest    = 'basinTide', type = str, 
                     action  = 'store', 
-                    default = 'data/Boundary/Basin_Tide_Boundary_2010_2015.csv',
+                    default = 'data/Boundary/Basin_Tide_Boundary_2000_2016.csv',
                     help    = 'Basin tide boundary data files: -bt ' +\
-                              'data/Boundary/Basin_Tide_Boundary_2010_2015.csv')
+                              'data/Boundary/Basin_Tide_Boundary_2000_2016.csv')
 
     parser.add_argument('-br', '--basinRain',
                         dest    = 'basinRain', type = str, 
                         action  = 'store', 
                         default = 'data/Rain/' +\
-                                  'DailyRainFilled_cm_1999-9-1_2015-12-8.csv',
+                                  'DailyRainFilled_cm_1999-9-1_2016-12-31.csv',
                         help    = 'Daily rain data file: -br data/Rain/' +\
-                                  'DailyRainFilled_cm_1999-9-1_2015-12-8.csv' )
+                                  'DailyRainFilled_cm_1999-9-1_2016-12-31.csv' )
 
     parser.add_argument('-bc', '--basinBCFile',
                         dest    = 'basinBCFile', type = str, 
@@ -198,17 +198,17 @@ def ParseCmdLine():
                         dest    = 'basinStage', type = str, 
                         action  = 'store', 
                         default = 'data/Stage/' +\
-                                  'DailyStage_1999-9-1_2016-3-1.csv',
+                                  'DailyStage_1999-9-1_2016-12-31.csv',
                         help  = 'Daily stage data file: -bs data/Stage/'+\
-                                'DailyStage_1999-9-1_2016-3-1.csv' )
+                                'DailyStage_1999-9-1_2016-12-31.csv' )
 
     parser.add_argument('-et', '--ET',
                         dest    = 'ET', type = str, 
                         action  = 'store', 
                         default = 'data/ET/' +\
-                                  'PET_1999-9-1_2015-12-31.csv',
+                                  'PET_1999-9-1_2016-12-31.csv',
                         help    = 'PET data file: -et ' +\
-                                  'data/ET/PET_1999-9-1_2015-12-31.csv' )
+                                  'data/ET/PET_1999-9-1_2016-12-31.csv' )
 
     parser.add_argument('-es', '--ET scale',
                         dest    = 'ET_scale', type = float, 
@@ -246,9 +246,9 @@ def ParseCmdLine():
                         dest    = 'salinityFile', type = str, 
                         action  = 'store', 
                         default = 'data/Salinity/' +\
-                                  'DailySalinityFilled_1999-9-1_2015-12-8.csv',
+                                  'DailySalinityFilled_1999-9-1_2016-12-31.csv',
                         help  = 'Daily salinity data file: -sf data/Salinity/'+\
-                                'DailySalinityFilled_1999-9-1_2015-12-8.csv' )
+                                'DailySalinityFilled_1999-9-1_2016-12-31.csv' )
 
     parser.add_argument('-msl', '--seasonalMSL',
                         dest    = 'seasonalMSL', type = str, 
