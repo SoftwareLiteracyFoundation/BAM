@@ -81,9 +81,8 @@ def ParseCmdLine():
     parser.add_argument('-p', '--path',
                         dest    = 'path', type = str, 
                         action  = 'store', 
-                        default = '/opt/hydro/models/PyBAM/',
-                        help    = 'Top level path of BAM: -p ' +\
-                                  '/opt/hydro/models/PyBAM/' )
+                        default = './',
+                        help    = 'Top level path of BAM: -p ./' )
 
     parser.add_argument('-t', '--timestep',
                         dest    = 'timestep', type = int, 
