@@ -7,7 +7,8 @@ Version = 'Version 1.2 2017-11-12'
 # WGS Ellipsoidal Gravity Formula at 25.1 N
 g = 9.7896248
 
-textFont = 'Arial 12'
+textFont   = 'Arial 12'
+buttonFont = 'Arial 10'
 
 # Used to set appropriate legend and data type for map plot 
 # in basin.SetBasinMapColor

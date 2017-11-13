@@ -9,9 +9,14 @@ from random      import randint
 
 strptime = datetime.strptime
 
+# Note that these are separate modules:
+#   tkinter.filedialog
+#   tkinter.messagebox
+#   tkinter.font
 import tkinter as Tk
 from   tkinter import messagebox
-from   tkinter import ttk # tk themed widgets
+from   tkinter import filedialog
+from   tkinter import ttk # tk themed widgets within tkinter (tkinter.ttk)
 
 # Community modules
 from numpy import linspace, isnan
@@ -50,6 +55,11 @@ class GUI:
 
     def __init__( self, root, model ):
 
+        # Set Tk-wide Font default for filedialog
+        # But it doesn't set filedialog window or button fonts
+        #root.tk.call( "option", "add", "*Font", constants.textFont ) 
+        root.option_add( "*Font", constants.textFont )
+
         self.model = model
         
         # GUI objects
@@ -64,6 +74,12 @@ class GUI:
         self.gaugeListBox       = None   # a Toplevel pop-up
         self.msgText            = None   # Tk.Text widget for gui messages
 
+        self.buttonStyle = ttk.Style() # Note that BAM.TButton is child class
+        self.buttonStyle.configure( 'BAM.TButton', font = constants.buttonFont )
+        self.checkButtonStyle = ttk.Style() 
+        self.checkButtonStyle.configure('BAM.TCheckbutton',
+                                         font = constants.textFont )
+        
         self.mapOptionMenu      = None # map plot variable selection
         self.plotOptionMenu     = None # timeseries plot variable selection
         self.startTimeEntry     = None # simulation start time
@@ -223,26 +239,33 @@ class GUI:
                                             self.mapPlotVariable,
                                             *constants.BasinMapPlotVariable )
 
+        self.mapOptionMenu.config        ( font = constants.buttonFont )
+        self.mapOptionMenu['menu'].config( font = constants.buttonFont )
         self.mapOptionMenu.config( bg = 'white' )
-        
+
         # Button for self.Init()
         initButton = ttk.Button( controlframe, text = "Init",
+                                 style = 'BAM.TButton',
                                  command = lambda : InitTimeBasins(self.model))
 
         # Button for model.Run()
         runButton = ttk.Button( controlframe, text = "Run",
+                                style = 'BAM.TButton',
                                 command = self.model.Run )
 
         # Button for model.Pause()
         pauseButton = ttk.Button( controlframe, text = "Pause",
+                                  style = 'BAM.TButton',
                                   command = self.model.Pause )
 
         # Button for model.Stop()
         stopButton = ttk.Button( controlframe, text = "Stop",
+                                 style = 'BAM.TButton',
                                  command = self.model.Stop )
 
         # Button for model.GetRecordVariables()
         recordVarButton = ttk.Button( controlframe, text = "Record",
+                                      style = 'BAM.TButton',
                                       command = self.GetRecordVariables )
 
         # OptionMenu for variable timeseries plot types
@@ -251,27 +274,33 @@ class GUI:
         self.plotOptionMenu = Tk.OptionMenu( controlframe, self.plotVariable,
                                              *constants.BasinPlotVariable )
         
+        self.plotOptionMenu.config        ( font = constants.buttonFont )
+        self.plotOptionMenu['menu'].config( font = constants.buttonFont )
         self.plotOptionMenu.config( bg = 'white' )
 
         # Button for model.PlotRunData()
         plotRunButton = ttk.Button( controlframe, text = "Plot Run",
+                                    style = 'BAM.TButton',
                                     command = self.PlotRunData )
 
         # Button for model.PlotArchiveData()
         plotArchiveButton = ttk.Button( controlframe, text = "Plot Disk",
+                                        style = 'BAM.TButton',
                                         command = self.PlotArchiveData )
 
         # Button for PlotGaugeSalinityData()
         # Can't set text color in ttk Button, use standard Tk
         plotGaugeSalinityButton = Tk.Button( controlframe, text = "Salinity",
-                                     command = self.PlotGaugeSalinityData,
-                                     foreground = 'blue' )
+                                    command = self.PlotGaugeSalinityData,
+                                    font = constants.buttonFont,
+                                    foreground = 'blue' )
         
         # Button for PlotGaugeStageData()
         # Can't set text color in ttk Button, use standard Tk
         plotGaugeStageButton = Tk.Button( controlframe, text = "Stage",
-                                     command = self.PlotGaugeStageData,
-                                     foreground = 'blue' )
+                                          command = self.PlotGaugeStageData,
+                                          font = constants.buttonFont,
+                                          foreground = 'blue' )
         
         #-------------------------------------------------------------------
         # Setup the window layout with the 'grid' geometry manager. 
@@ -467,16 +496,19 @@ class GUI:
         top.grid()
 
         setButton = ttk.Button( top, text = "Set",
+                                style = 'BAM.TButton',
                                 command = self.SetRecordVariables )
 
         closeButton = ttk.Button( top, text = "Close",
+                                  style = 'BAM.TButton',
                                   command = lambda: top.destroy() )
 
         checkButtons = odict()
 
         for plotVariable in constants.BasinPlotVariable :
             checkButtons[ plotVariable ] = \
-                ttk.Checkbutton( top, text = plotVariable, 
+                ttk.Checkbutton( top, text = plotVariable,
+                                 style = 'BAM.TCheckbutton',
                                  variable = self.plotVar_IntVars[plotVariable])
 
         for checkButton in checkButtons.values() :
@@ -1239,7 +1271,7 @@ class GUI:
     #
     #-----------------------------------------------------------
     def ShowAboutInfo( self ):
-        Tk.messagebox.showinfo( message = self.model.Version )
+        messagebox.showinfo( message = self.model.Version )
 
     #-----------------------------------------------------------
     #
@@ -1249,7 +1281,7 @@ class GUI:
         if self.model.args.DEBUG_ALL :
             print( '-> OpenInitFile(): ', flush = True ) 
 
-        input_file = Tk.filedialog.askopenfilename(
+        input_file = filedialog.askopenfilename(
             initialdir  = self.model.args.path + 'data/init/',
             initialfile = 'Basin_Initial_Values.csv', 
             filetypes   = [('Basin Init Files', '*.csv')],
@@ -1280,7 +1312,7 @@ class GUI:
         if self.model.args.DEBUG_ALL:
             print( '-> EditFile(): ', flush = True ) 
 
-        edit_file = Tk.filedialog.askopenfilename(
+        edit_file = filedialog.askopenfilename(
             initialdir  = self.model.args.path,
             # initialfile = '', 
             filetypes = [ ('Data',   '*.csv'), 
@@ -1324,7 +1356,7 @@ class GUI:
             initial_plot_dir = self.model.args.homeDir
 
         # Get the file path and runid
-        archive_dir = Tk.filedialog.askdirectory(
+        archive_dir = filedialog.askdirectory(
             initialdir  = initial_plot_dir,
             title       = 'Plot Archive Directory',
             mustexist   = True )
@@ -1355,7 +1387,7 @@ class GUI:
             initial_out_dir = self.model.args.homeDir
 
         # Get the file path and runid
-        output_dir = Tk.filedialog.askdirectory(
+        output_dir = filedialog.askdirectory(
             initialdir  = initial_out_dir,
             title       = 'Basin Output Directory',
             mustexist   = False )
