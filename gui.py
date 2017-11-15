@@ -55,11 +55,6 @@ class GUI:
 
     def __init__( self, root, model ):
 
-        # Set Tk-wide Font default for filedialog
-        # But it doesn't set filedialog window or button fonts
-        #root.tk.call( "option", "add", "*Font", constants.textFont ) 
-        root.option_add( "*Font", constants.textFont )
-
         self.model = model
         
         # GUI objects
@@ -86,7 +81,13 @@ class GUI:
         self.endTimeEntry       = None # simulation end time
 
         self.plotVar_IntVars    = odict() # { plotVariable : Tk.IntVar() }
+        
         if not self.model.args.noGUI :
+            # Set Tk-wide Font default for filedialog
+            # But it doesn't set filedialog window or button fonts
+            #root.tk.call( "option", "add", "*Font", constants.textFont ) 
+            root.option_add( "*Font", constants.textFont )
+
             self.mapPlotVariable    = Tk.StringVar()
             self.plotVariable       = Tk.StringVar()
             self.current_time_label = Tk.StringVar()
