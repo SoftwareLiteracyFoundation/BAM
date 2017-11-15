@@ -694,7 +694,7 @@ def GetBasinSalinityData( model ):
 
         for j in range( 1, len( words ) ) :
             if words[ j ] == 'NA' :
-                salinity_value = 'NA'
+                salinity_value = None
             else:
                 salinity_value = float( words[ j ] )
                 
@@ -729,8 +729,8 @@ def SetInitialBasinSalinity( model ) :
             try:
                 salinity_gauge = \
                     float( station_salinity_map[ Basin.salinity_station ] )
-            except ValueError:
-                # Salinity data can contain 'NA' if no data available...
+            except ( TypeError, ValueError ) :
+                # Salinity data can be None if no data available "NA"
                 salinity_gauge = 0
 
                 msg = '\nSetInitialBasinSalinity: WARNING:' +\

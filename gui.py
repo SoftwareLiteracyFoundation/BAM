@@ -617,7 +617,8 @@ class GUI:
             basinNames.append( Basin.name )
 
             # Read the basin .csv data to get [times] and [data]
-            file_name = self.plot_dir + '/' + Basin.name + '.csv'
+            file_name = self.plot_dir + '/' + \
+                        Basin.name + self.model.args.runID + '.csv'
             try :
                 fd = open( file_name, 'r' )
             except OSError as err :
