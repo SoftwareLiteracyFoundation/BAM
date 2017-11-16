@@ -375,7 +375,7 @@ def MassTransport( model ) :
 
                 # Ignore the new salinity... 
                 # Play God and wish some salt away...
-                Basin.salt_mass = Basin.salt_mass * 0.9 # JP ???
+                Basin.salt_mass = Basin.salt_mass * 0.5 # JP ???
 
             else :
                 Basin.salinity = new_salinity
