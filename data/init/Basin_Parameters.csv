@@ -1,65 +1,65 @@
-Basin,       Name,            Rain Gauge,   Rain Scale, Gauge, Salt Factor
-5,   Barnes Sound,            [ HC LS LB ], [ 3 3 2 ],  MD,      1.0
-6,   Manatee Bay,             [ HC LS LB ], [ 4 3 3 ],  MB,      1.0
-7,   Long Sound,              [ TC LS HC ], [ 3 4 3 ],  LS,      1.0
-8,   Little Blackwater Sound, [ LS LB BS ], [ 3 2 3 ],  LB,      1.0
-9,   Blackwater Sound,        [ DK BS LB ], [ 2 3 2 ],  BS,      1.0
-10,  Tarpon,                  [ BS BN DK ], [ 2 2 1 ],  None,    1.0
-11,  Little Buttonwood Sound, [ BS BN DK ], [ 1 2 2 ],  None,    1.0
-12,  Nest Keys,               [ LM DK BN ], [ 1 2 2 ],  None,    1.0
-13,  Joe Bay,                 [ TR TC DK ], [ 2 2 2 ],  TC,      1.0
-14,  Little Madeira Bay,      [ TR LM TC ], [ 2 2 2 ],  LM,      1.0
-15,  Black Betsy Keys,        [ TR LM BN ], [ 2 2 2 ],  LM,      1.0
-16,  Upper Cross Bank,        [ BA LM BN ], [ 2 1 2 ],  None,    1.0
-17,  Rock Harbor,             [ BS BN    ], [ 1 3   ],  None,    1.0
-18,  Buttonwood Sound,        [ BS BN DK ], [ 2 2 1 ],  None,    1.0
-19,  Jimmie Key,              [ BA BN    ], [ 2 2   ],  None,    1.0
-20,  Cotton Key,              [ BA BN PK ], [ 2 2 1 ],  None,    1.0
-21,  Captain Key,             [ BA BN PK ], [ 2 2 1 ],  None,    1.0
-22,  Russell Key,             [ WB BA BN ], [ 2 2 1 ],  None,    1.0
-23,  Crocodile Dragover,      [ WB TR BA ], [ 2 2 1 ],  None,    1.0
-24,  Madeira Bay,             [ GB LM WB ], [ 2 2 2 ],  None,    1.0
-25,  Terrapin Bay,            [ GB LM WB ], [ 2 2 2 ],  None,    1.0
-26,  End Key,                 [ GB LM WB ], [ 2 2 1 ],  None,    1.0
-27,  Calusa Keys,             [ WB BA LR ], [ 2 2 1 ],  None,    1.0
-28,  Spy Key,                 [ WB BA LR ], [ 2 2 1 ],  None,    1.0
-29,  Porpoise Lake,           [ WB BA PK ], [ 2 3 2 ],  BA,      1.0
-30,  Lignumvitae,             [ LR PK BA ], [ 3 3 2 ],  PK,      1.0
-31,  Long Key,                [ LR PK    ], [ 3 3   ],  None,    1.0
-32,  Twin Keys,               [ LR PK BA ], [ 3 3 2 ],  LR,      1.0
-33,  Corrine Key,             [ LR WB BA ], [ 2 2 1 ],  None,    1.0
-34,  Whipray,                 [ BK WB BA ], [ 3 3 2 ],  WB,      1.0
-35,  North Whipray,           [ GB BK WB ], [ 2 2 2 ],  None,    1.0
-36,  Rankin Bight,            [ GB BK WB ], [ 2 1 2 ],  None,    1.0
-37,  Rankin Lake,             [ GB BK WB ], [ 2 1 2 ],  GB,      1.0
-38,  Rabbit Key,              [ JK LR    ], [ 3 3   ],  LR,      1.0
-39,  Johnson Key,             [ MK JK    ], [ 3 3   ],  JK,      1.0
-40,  Catfish Key,             [ MK JK BK ], [ 2 2 1 ],  MK,      1.0
-41,  Snake Bight,             [ MK BK GB ], [ 2 2 2 ],  BK,      1.0
-42,  Conchie Channel,         [ MK JK BK ], [ 2 2 2 ],  None,    1.0
-43,  Ninemile Bank,           [ JK LR    ], [ 1 1   ],  None,    1.0
-44,  Dildo Key Bank,          [ JK BK LR ], [ 2 2 1 ],  None,    1.0
-45,  Tavernier Creek,         [ BA BN    ], [ 1 1   ],  None,    1.0
-46,  Butternut Key,           [ BN DK    ], [ 3 3   ],  BN,      1.0
-47,  Duck Key,                [ DK BS TC ], [ 3 3 3 ],  DK,      1.0
-48,  Manatee Keys,            [ BA LM BN ], [ 2 2 2 ],  None,    1.0
-49,  Swash Keys,              [ BN DK BS ], [ 2 2 2 ],  BN,      1.0
-50,  Deer Key,                [ TC DK LS ], [ 2 2 2 ],  TC,      1.0
-51,  Eagle Key,               [ TR LM TC ], [ 2 2 2 ],  None,    1.0
-52,  Steamboat Channel,       [ PK BA    ], [ 1 1   ],  None,    1.0
-53,  Arsenicker Keys,         [ LR PK    ], [ 1 1   ],  None,    1.0
-54,  Sid Key,                 [ JK LR WB ], [ 2 2 1 ],  None,    1.0
-55,  Pelican Keys,            [ JK BK WB ], [ 2 2 1 ],  None,    1.0
-56,  Blue Bank,               [ JK MK LR ], [ 2 2 1 ],  None,    1.0
-57,  First National Bank,     [ MK JK    ], [ 2 1   ],  None,    1.0
-58,  Sandy Key,               [ MK JK    ], [ 2 1   ],  None,    1.0
-59,  Gulf Tide 1,             [ ],          [ ],        Gulf_1,  1.0
-60,  Gulf Tide 2,             [ ],          [ ],        Gulf_1,  1.0
-61,  Gulf Tide 3,             [ ],          [ ],        Gulf_1,  1.0
-62,  Gulf Tide 4,             [ ],          [ ],        Gulf_1,  1.0
-63,  Ocean Tide 5,            [ ],          [ ],        Ocean_1, 1.0
-64,  Ocean Tide 6,            [ ],          [ ],        Ocean_1, 1.0
-65,  Ocean Tide 7,            [ ],          [ ],        Ocean_1, 1.0
-66,  Ocean Tide 8,            [ ],          [ ],        Ocean_1, 1.0
-67,  Ocean Tide 9,            [ ],          [ ],        Ocean_1, 1.0
-68,  Card Sound Tide 10,      [ ],          [ ],        Ocean_1, 1.0
+Basin,       Name,            Rain Gauge,   Rain Scale, Gauge, ET Amplify
+5,   Barnes Sound,            [ HC LS LB ], [ 3 3 2 ],  MD,      False
+6,   Manatee Bay,             [ HC LS LB ], [ 2 2 1 ],  MB,      False
+7,   Long Sound,              [ TC LS HC ], [ 1 2 2 ],  LS,      False
+8,   Little Blackwater Sound, [ LS LB BS ], [ 3 2 3 ],  LB,      False
+9,   Blackwater Sound,        [ DK BS LB ], [ 2 3 2 ],  BS,      False
+10,  Tarpon,                  [ BS BN DK ], [ 2 2 1 ],  None,    False
+11,  Little Buttonwood Sound, [ BS BN DK ], [ 1 2 2 ],  None,    False
+12,  Nest Keys,               [ LM DK BN ], [ 1 2 2 ],  None,    False
+13,  Joe Bay,                 [ TR TC DK ], [ 2 2 2 ],  TC,      False
+14,  Little Madeira Bay,      [ TR LM TC ], [ 2 2 1 ],  LM,      False
+15,  Black Betsy Keys,        [ TR LM BN ], [ 2 2 2 ],  LM,      False
+16,  Upper Cross Bank,        [ BA LM BN ], [ 2 1 2 ],  None,    False
+17,  Rock Harbor,             [ BS BN    ], [ 1 3   ],  None,    False
+18,  Buttonwood Sound,        [ BS BN DK ], [ 2 2 1 ],  None,    False
+19,  Jimmie Key,              [ BA BN    ], [ 2 2   ],  None,    False
+20,  Cotton Key,              [ BA BN PK ], [ 2 2 1 ],  None,    False
+21,  Captain Key,             [ BA BN PK ], [ 2 2 1 ],  None,    False
+22,  Russell Key,             [ WB BA BN ], [ 2 2 1 ],  None,    False
+23,  Crocodile Dragover,      [ WB TR BA ], [ 2 2 1 ],  None,    False
+24,  Madeira Bay,             [ GB LM WB ], [ 2 2 2 ],  None,    False
+25,  Terrapin Bay,            [ GB LM WB ], [ 2 2 2 ],  None,    True
+26,  End Key,                 [ GB LM WB ], [ 2 2 1 ],  None,    False
+27,  Calusa Keys,             [ WB BA LR ], [ 2 2 1 ],  None,    False
+28,  Spy Key,                 [ WB BA LR ], [ 2 2 1 ],  None,    False
+29,  Porpoise Lake,           [ WB BA PK ], [ 2 3 2 ],  BA,      False
+30,  Lignumvitae,             [ LR PK BA ], [ 3 3 2 ],  PK,      False
+31,  Long Key,                [ LR PK    ], [ 3 3   ],  None,    False
+32,  Twin Keys,               [ LR PK BA ], [ 3 3 2 ],  LR,      False
+33,  Corrine Key,             [ LR WB BA ], [ 2 2 1 ],  None,    False
+34,  Whipray,                 [ BK WB BA ], [ 3 3 2 ],  WB,      False
+35,  North Whipray,           [ GB BK WB ], [ 2 2 2 ],  None,    True
+36,  Rankin Bight,            [ GB BK WB ], [ 2 1 2 ],  None,    False
+37,  Rankin Lake,             [ GB BK WB ], [ 2 1 1 ],  GB,      True
+38,  Rabbit Key,              [ JK LR    ], [ 3 3   ],  LR,      False
+39,  Johnson Key,             [ MK JK    ], [ 3 3   ],  JK,      False
+40,  Catfish Key,             [ MK JK BK ], [ 2 2 1 ],  MK,      False
+41,  Snake Bight,             [ MK BK GB ], [ 2 2 2 ],  BK,      True
+42,  Conchie Channel,         [ MK JK BK ], [ 2 2 2 ],  None,    False
+43,  Ninemile Bank,           [ JK LR    ], [ 1 1   ],  None,    False
+44,  Dildo Key Bank,          [ JK BK LR ], [ 2 2 1 ],  None,    False
+45,  Tavernier Creek,         [ BA BN    ], [ 1 1   ],  None,    False
+46,  Butternut Key,           [ BN DK    ], [ 3 3   ],  BN,      False
+47,  Duck Key,                [ DK BS TC ], [ 3 3 3 ],  DK,      False
+48,  Manatee Keys,            [ BA LM BN ], [ 2 2 2 ],  None,    False
+49,  Swash Keys,              [ BN DK BS ], [ 2 2 2 ],  BN,      False
+50,  Deer Key,                [ TC DK LS ], [ 2 2 2 ],  TC,      False
+51,  Eagle Key,               [ TR LM TC ], [ 2 2 2 ],  None,    False
+52,  Steamboat Channel,       [ PK BA    ], [ 1 1   ],  None,    False
+53,  Arsenicker Keys,         [ LR PK    ], [ 1 1   ],  None,    False
+54,  Sid Key,                 [ JK LR WB ], [ 2 2 1 ],  None,    False
+55,  Pelican Keys,            [ JK BK WB ], [ 2 2 1 ],  None,    False
+56,  Blue Bank,               [ JK MK LR ], [ 2 2 1 ],  None,    False
+57,  First National Bank,     [ MK JK    ], [ 2 1   ],  None,    False
+58,  Sandy Key,               [ MK JK    ], [ 2 1   ],  None,    False
+59,  Gulf Tide 1,             [ ],          [ ],        Gulf_1,  False
+60,  Gulf Tide 2,             [ ],          [ ],        Gulf_1,  False
+61,  Gulf Tide 3,             [ ],          [ ],        Gulf_1,  False
+62,  Gulf Tide 4,             [ ],          [ ],        Gulf_1,  False
+63,  Ocean Tide 5,            [ ],          [ ],        Ocean_1, False
+64,  Ocean Tide 6,            [ ],          [ ],        Ocean_1, False
+65,  Ocean Tide 7,            [ ],          [ ],        Ocean_1, False
+66,  Ocean Tide 8,            [ ],          [ ],        Ocean_1, False
+67,  Ocean Tide 9,            [ ],          [ ],        Ocean_1, False
+68,  Card Sound Tide 10,      [ ],          [ ],        Ocean_1, False
