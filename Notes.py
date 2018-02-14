@@ -4,6 +4,16 @@
 #------------------------------------------------------------------
 def Versions() :
     '''
+    Version 1.3 2018-2-7
+      Add coastal basin max surface water temperature timeseries (-st).
+
+      Add ET 'amplification' from increased thermodynamic (kinetic)
+      equilibrium vapor pressure to specified basins (-ea).
+
+      Add model.VaporPressureRatio() method and reference temperature (-rt).
+
+      Replace "Salt Factor" in Basin_Parameters.csv file with "ET Amplify".
+
     Version 1.2 2017-11-12
       Update data period of record to 1999-9-1 : 2016-12-31
 
@@ -40,6 +50,26 @@ def Installation() :
     sudo pip3    install cairocffi   # for matplotlib.backends
     sudo pip3    install matplotlib
     sudo pip3    install pyshp       # https://github.com/GeospatialPython/pyshp
+    '''
+    pass
+
+#------------------------------------------------------------------
+#------------------------------------------------------------------
+def ToDo() :
+    '''
+      -------------------------------------------------------------
+      Wind dependence.
+      Groundwater : include as Runoff?
+      -------------------------------------------------------------
+      Flush output files
+      Plot archived data with run id
+      Add I/O file list to RunInfo.txt
+      Hardcoded boundary basins : read from config file
+      Redo shapefile/init files to include new boundary basins
+      Remove phantom shoals that don't connect basins
+      Replace shoal hydro dictionaries with explicitly indexed numpy arrays?
+      Replace numeric lists with pre-allocated numpy arrays?
+      Add Help (Notes.py __doc__ etc...)
     '''
     pass
 

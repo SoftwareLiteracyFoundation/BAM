@@ -79,6 +79,9 @@ def InitTimeBasins( model ):
     if not model.args.noRain and time_changed : # -nr
         GetBasinRainData( model )               # -br
 
+    if model.args.ET_amplify and time_changed : # -ea
+        GetTemperatureData( model )             # -st
+
     if not model.args.noET and time_changed :   # -ne
         GetETData( model )                      # -et
 
@@ -89,7 +92,7 @@ def InitTimeBasins( model ):
         GetBasinStageData( model ) # -bs
 
     if not model.args.noDynamicBoundaryConditions and time_changed : # -db
-        GetBasinDynamicBCData( model )                              # -bc
+        GetBasinDynamicBCData( model )                               # -bc
 
     if model.args.fixedBoundaryConditions :     # -fb
         GetBasinFixedBoundaryCondition( model ) # -bf
@@ -318,7 +321,7 @@ def GetBasinParameters( model ):
 
     # The csv file has 5 columns, 1 = basin number, 2 = basin name
     # 3 = [ Rain stations ], 4 = [ Rain scales ], 5 = Salinity station,
-    # 6 = Salt factor
+    # 6 = ET Amplify
     # first row is header
     fd   = open( model.args.path + model.args.basinParameters, 'r' )
     rows = fd.readlines()
@@ -334,7 +337,7 @@ def GetBasinParameters( model ):
             
     # Validate the file has the correct columns
     valid_columns = [ 'Basin', 'Name', 'Rain Gauge',
-                      'Rain Scale', 'Gauge', 'Salt Factor' ]
+                      'Rain Scale', 'Gauge', 'ET Amplify' ]
 
     for valid_column in valid_columns :
         if valid_column not in words :
@@ -386,13 +389,14 @@ def GetBasinParameters( model ):
                 if model.args.gaugeSalinity :
                     Basin.salinity_from_data = True
 
-        # Add salt factor to the Basin
-        Basin.salt_factor = float( words[ var_column_map['Salt Factor'] ] )
+        # Add ET Amplify flag to the Basin
+        Basin.ET_amplify = "True" in words[ var_column_map['ET Amplify'] ]
 
         if model.args.DEBUG_ALL :
             print( Basin.name, ' [', Basin.number, ']' )
             print( '\t', Basin.rain_stations, ' : ', Basin.rain_scales )
             print( '\t', Basin.salinity_station )
+            print( '\t', Basin.ET_amplify )
 
 #----------------------------------------------------------------
 # 
@@ -795,6 +799,53 @@ def GetETData( model ):
     if model.args.DEBUG_ALL :
         print( model.et_data )
 
+#----------------------------------------------------------------
+# 
+#----------------------------------------------------------------
+def GetTemperatureData( model ):
+    '''Read daily max temperature data (-st)'''
+
+    if model.args.DEBUG_ALL :
+        print( '\n-> GetTemperatureData', flush = True )
+
+    # The csv file has 2 columns, 1 = YYYY-MM-DD, 2 = MaxTemp (C)
+    # first row is header
+    fd   = open( model.args.path + model.args.surfaceTemp, 'r' )
+    rows = fd.readlines()
+    fd.close()
+
+    # Create list of datetimes
+    dates = []
+    for i in range( 1, len( rows ) ) :
+        row   = rows[ i ]
+        words = row.split(',')
+        dates.append( strptime( words[ 0 ], '%Y-%m-%d' ) )
+
+    # Find index in dates for start_time & end_time
+    start_i, end_i = GetTimeIndex( 'Temperature', dates, 
+                                   model.start_time, model.end_time )        
+        
+    if model.args.DEBUG_ALL :
+        print( 'Temperature data start: ',
+               str( dates[ start_i ] ), str( start_i ), 
+               ' end: ',          str( dates[ end_i   ] ), str( end_i ) )
+        print( rows[ start_i ] )
+        print( rows[ end_i ] )
+
+    # Populate only data needed for the simulation timeframe
+    for i in range( start_i, end_i + 1 ) :
+        row   = rows[ i+1 ]
+        words = row.split(',')
+
+        # The key is an integer 3-tuple of ( Year, Month, Day )
+        # values are PET in mm/day.
+        date = dates[ i ]
+        key = ( date.year, date.month, date.day )
+        model.temperature_data[ key ] = float( words[1] )
+        
+    if model.args.DEBUG_ALL :
+        print( model.temperature_data )
+        
 #----------------------------------------------------------------
 # 
 #----------------------------------------------------------------

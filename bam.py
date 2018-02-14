@@ -24,22 +24,7 @@ from init import InitTimeBasins
 # Main module
 #----------------------------------------------------------------------------
 def main():
-    '''See Notes.py and model.py
- 
-    To do:
-      -------------------------------------------------------------
-      Groundwater : include as Runoff?
-      -------------------------------------------------------------
-      Flush output files
-      Plot archived data with run id
-      Add I/O file list to RunInfo.txt
-      Hardcoded boundary basins : read from config file
-      Redo shapefile/init files to include new boundary basins
-      Remove phantom shoals that don't connect basins
-      Replace shoal hydro dictionaries with explicitly indexed numpy arrays?
-      Replace numeric lists with pre-allocated numpy arrays?
-      Add Help (Notes.py __doc__ etc...)
-    '''
+    '''See Notes.py and model.py'''
 
     args = ParseCmdLine()
 
@@ -200,6 +185,26 @@ def ParseCmdLine():
                                   'DailyStage_1999-9-1_2016-12-31.csv',
                         help  = 'Daily stage data file: -bs data/Stage/'+\
                                 'DailyStage_1999-9-1_2016-12-31.csv' )
+
+    parser.add_argument('-st', '--temperature',
+                        dest    = 'surfaceTemp', type = str, 
+                        action  = 'store', 
+                        default = 'data/Temperature/' +\
+                                  'MaxTemp_Filled_1999-9-1_2017-6-30.csv',
+                        help    = 'Temperature data file: -st ' +\
+                                  'data/Temperature/' +\
+                                  'MaxTemp_Filled_1999-9-1_2017-6-30.csv' )
+
+    parser.add_argument('-rt', '--reference_temperature',
+                        dest    = 'reference_temperature', type = float, 
+                        action  = 'store', 
+                        default = 25,
+                        help    ='Reference temperature for ET amplify: -rt 25')
+
+    parser.add_argument('-ea', '--ET_Amplify',
+                        dest    = 'ET_amplify', # type = bool, 
+                        action  = 'store_true', default = False,
+                        help    = 'Amplify ET from temperature: -ea' )
 
     parser.add_argument('-et', '--ET',
                         dest    = 'ET', type = str, 

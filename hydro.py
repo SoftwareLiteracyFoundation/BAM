@@ -1,7 +1,7 @@
 '''Hydraulic functions for the Bay Assessment Model (BAM)'''
 
 # Python distribution modules
-from math import sqrt
+from math import sqrt, pow
 
 # Local modules
 import constants
@@ -238,9 +238,6 @@ def MassTransport( model ) :
         
         Basin_A = Shoal.Basin_A
         Basin_B = Shoal.Basin_B
-
-        Basin_A_salt_factor = Basin_A.salt_factor
-        Basin_B_salt_factor = Basin_B.salt_factor
         
         #--------------------------------------------------------
         # Process each shoal depth that has non-zero wet_length 
@@ -323,10 +320,10 @@ def MassTransport( model ) :
         delta_salt_mass = source_salinity * delta_volume * 997
 
         if not Basin_A.boundary_basin :
-            Basin_A.salt_mass -= delta_salt_mass * Basin_A.salt_factor
+            Basin_A.salt_mass -= delta_salt_mass
 
         if not Basin_B.boundary_basin :
-            Basin_B.salt_mass += delta_salt_mass * Basin_B.salt_factor
+            Basin_B.salt_mass += delta_salt_mass
 
         if Basin_A.salt_mass < 0 :
             Basin_A.salt_mass = 0

@@ -39,7 +39,7 @@ class Basin:
         self.water_volume    = 0.         # (m^3)
         self.previous_volume = 0.         # (m^3)
         self.salt_mass       = None       # (kg)
-        self.salt_factor     = 1.         # ()
+        self.ET_amplify      = False      # ()
         self.salinity        = None       # (g/kg)
         self.temperature     = None       # (C)
 

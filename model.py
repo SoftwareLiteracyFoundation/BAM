@@ -7,6 +7,7 @@ from time        import time, asctime, localtime
 from datetime    import timedelta, datetime
 from collections import OrderedDict as odict
 from threading   import Thread, Condition
+from math        import exp
 import tkinter as Tk
 
 strptime = datetime.strptime
@@ -53,6 +54,7 @@ class Model:
         self.record_variables    = []     # variables to plot/record
         self.rain_data           = dict() # { (year,month,day) : {station:rain}}
         self.et_data             = dict() # { (year,month,day) : pet }
+        self.temperature_data    = dict() # { (year,month,day) : pet }
         self.runoff_stage_basins = dict() # { Basin : EDEN station } -bS
         self.runoff_stage_data   = dict() # {(year,month,day):{basin_num:stage}}
         self.runoff_stage_shoals = dict() # { Basin : [ Shoal ] }
@@ -246,6 +248,7 @@ class Model:
             self.GetSalinity       ( key )
             self.GetTides          ( self.unix_time )
             self.GetRain           ( key )
+            self.GetTemperature    ( key )
             self.GetET             ( key )
             self.GetRunoff         ( key )
 
@@ -352,6 +355,29 @@ class Model:
     #----------------------------------------------------------------
     # 
     #----------------------------------------------------------------
+    def GetTemperature( self, key ):
+        '''Get water temperature for basin, but only if the ET Amplify
+           option is specified (-ea) and the basin ET Amplify field 
+           is True in Basin_Parameters.csv'''
+
+        if self.args.DEBUG_ALL :
+            print( '\n-> GetTemperature', flush = True )
+
+        if not self.args.ET_amplify :
+            return
+
+        temperature = self.temperature_data[ key ]
+
+        for Basin in self.Basins.values() :
+            if Basin.boundary_basin :
+                continue
+
+            if Basin.ET_amplify :
+                Basin.temperature = temperature
+            
+    #----------------------------------------------------------------
+    # 
+    #----------------------------------------------------------------
     def GetET( self, key ):
         '''Subtract ET volume from basin'''
 
@@ -367,14 +393,45 @@ class Model:
             if Basin.boundary_basin :
                 continue
 
+            kinetic_ET_factor = 1
+
+            if self.args.ET_amplify :
+                if Basin.temperature :
+                    kinetic_ET_factor = self.VaporPressureRatio( \
+                                             Basin.temperature )
+
             et_volume_day = ( et_mm_day / 1000 ) * Basin.area * \
-                            self.args.ET_scale
+                            self.args.ET_scale * kinetic_ET_factor
 
             et_volume_t   = et_volume_day / self.timestep_per_day
 
             Basin.evaporation = et_volume_t
 
             Basin.water_volume -= et_volume_t
+            
+    #----------------------------------------------------------------
+    # 
+    #----------------------------------------------------------------
+    def VaporPressureRatio( self, temperature ):
+        '''Return relative vapor pressure to amplify ET'''
+
+        if self.args.DEBUG_ALL :
+            print( '\n-> VaporPressureRatio', flush = True )
+
+        if not self.args.ET_amplify :
+            return 1
+
+        dH = 44000 # enthalpy of vaporization J/mol @ 300 K
+        R  = 8.314 # universal gas constant   J/(mol K)
+        ref_temperature = self.args.reference_temperature
+
+        # Clausius-Clapeyron relation:
+        # ln( P2/P1 ) = ( dH / R ) * (1/T2 - 1/T1)
+        P_Pref = exp( (dH/R) * ( 1/(ref_temperature + 273.15) -
+                                 1/(temperature     + 273.15) ) )
+
+        # Limit ratio's less than 1 to 1 (when temp < ref_temp )
+        return max( 1, P_Pref )
             
     #----------------------------------------------------------------
     # 
