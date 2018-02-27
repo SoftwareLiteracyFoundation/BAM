@@ -198,12 +198,12 @@ def ParseCmdLine():
     parser.add_argument('-rt', '--reference_temperature',
                         dest    = 'reference_temperature', type = float, 
                         action  = 'store', 
-                        default = 25,
-                        help    ='Reference temperature for ET amplify: -rt 25')
+                        default = 15,
+                        help    ='Reference temperature for ET amplify: -rt 15')
 
     parser.add_argument('-ea', '--ET_Amplify',
                         dest    = 'ET_amplify', # type = bool, 
-                        action  = 'store_true', default = False,
+                        action  = 'store_true', default = True,
                         help    = 'Amplify ET from temperature: -ea' )
 
     parser.add_argument('-et', '--ET',
@@ -217,8 +217,8 @@ def ParseCmdLine():
     parser.add_argument('-es', '--ET scale',
                         dest    = 'ET_scale', type = float, 
                         action  = 'store', 
-                        default = 2,
-                        help    = 'Scale factor on global ET: -es 2' )
+                        default = 1,
+                        help    = 'Scale factor on global ET: -es 1' )
 
     parser.add_argument('-s', '--shoals',
                         dest    = 'shoalShapeFile', type = str, 

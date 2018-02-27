@@ -1,6 +1,6 @@
 Florida Bay Assessment Model (BAM)
 
-BAM is a 'basins' hydrological model of Florida Bay.  It is mass-conservative and explicitly designed to assess water levels and salinities in 54 idealized basins representing Florida Bay.  Basins are separated and connected by shoals, thereby the model conforms to a linked-node network hierarchy with basins as nodes and shoals as links.  Model inputs include rainfall, evaporation, tidal elevations and freshwater runoff from the Everglades.  Intra-basin fluxes are driven by hydraulic gradients developed across the shoals in response to water level elevations and are modeled with Manning's equation. 
+BAM is a 'basins' hydrological model of Florida Bay.  It is mass-conservative and explicitly designed to assess water levels and salinities in 54 idealized basins representing Florida Bay.  Basins are separated and connected by shoals, thereby the model conforms to a linked-node network hierarchy with basins as nodes and shoals as links.  Model inputs include rainfall, evaporation, tidal elevations and freshwater runoff from the Everglades.  Inter-basin fluxes are driven by hydraulic gradients developed across the shoals in response to water level elevations and are modeled with Manning's equation. 
 
 A good place to start are the docstrings in Notes.py, and a perusal of the command line options (e.g. ./bam.py -h). 
 
