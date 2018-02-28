@@ -236,7 +236,7 @@ class Model:
                     self.gui.current_time_label.set( str( self.current_time ) )
                     self.gui.canvas.show()
                 else :
-                    self.gui.Message( str( self.current_time ) )
+                    print( str( self.current_time ) )
 
             # Tuple used as lookup key for daily rain, ET, salinity, runoff
             key = ( self.current_time.year,

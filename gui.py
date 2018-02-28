@@ -423,7 +423,7 @@ class GUI:
             self.msgText.insert( Tk.END, msg )
             self.msgText.see   ( Tk.END )
         else :
-            print( msg )
+            print( msg, end = '' )
 
         self.model.run_info.append( msg )
 

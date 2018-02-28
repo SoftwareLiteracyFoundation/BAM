@@ -51,6 +51,8 @@ def main():
         # Enter the Tk mainloop
         model.gui.Tk_root.mainloop()
     else :
+        model.gui.Message( model.Version )
+        model.gui.Message( model.args.commandLine + '\n' )
         # Run the model
         model.Run()
 
