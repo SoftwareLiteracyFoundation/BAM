@@ -203,10 +203,10 @@ def ParseCmdLine():
                         default = 15,
                         help    ='Reference temperature for ET amplify: -rt 15')
 
-    parser.add_argument('-ea', '--ET_Amplify',
-                        dest    = 'ET_amplify', # type = bool, 
-                        action  = 'store_true', default = True,
-                        help    = 'Amplify ET from temperature: -ea' )
+    parser.add_argument('-na',  '--noET_Amplify',
+                        dest    = 'noET_Amplify', # type = bool, 
+                        action  = 'store_true', default = False,
+                        help    = 'Do not amplify ET from temperature: -na' )
 
     parser.add_argument('-et', '--ET',
                         dest    = 'ET', type = str, 

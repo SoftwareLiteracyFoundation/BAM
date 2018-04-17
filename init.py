@@ -79,8 +79,8 @@ def InitTimeBasins( model ):
     if not model.args.noRain and time_changed : # -nr
         GetBasinRainData( model )               # -br
 
-    if model.args.ET_amplify and time_changed : # -ea
-        GetTemperatureData( model )             # -st
+    if not model.args.noET_Amplify and time_changed : # -na
+        GetTemperatureData( model )                   # -st
 
     if not model.args.noET and time_changed :   # -ne
         GetETData( model )                      # -et

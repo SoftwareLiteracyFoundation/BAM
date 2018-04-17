@@ -356,14 +356,14 @@ class Model:
     # 
     #----------------------------------------------------------------
     def GetTemperature( self, key ):
-        '''Get water temperature for basin, but only if the ET Amplify
-           option is specified (-ea) and the basin ET Amplify field 
+        '''Get water temperature for basin, but only if the noET_Amplify
+           option is not specified (-na) and the basin ET Amplify field 
            is True in Basin_Parameters.csv'''
 
         if self.args.DEBUG_ALL :
             print( '\n-> GetTemperature', flush = True )
 
-        if not self.args.ET_amplify :
+        if self.args.noET_Amplify :
             return
 
         temperature = self.temperature_data[ key ]
@@ -395,7 +395,7 @@ class Model:
 
             kinetic_ET_factor = 1
 
-            if self.args.ET_amplify :
+            if not self.args.noET_Amplify :
                 if Basin.temperature :
                     kinetic_ET_factor = self.VaporPressureRatio( \
                                              Basin.temperature )
@@ -403,7 +403,7 @@ class Model:
             et_volume_day = ( et_mm_day / 1000 ) * Basin.area * \
                             self.args.ET_scale * kinetic_ET_factor
 
-            et_volume_t   = et_volume_day / self.timestep_per_day
+            et_volume_t = et_volume_day / self.timestep_per_day
 
             Basin.evaporation = et_volume_t
 
@@ -418,7 +418,7 @@ class Model:
         if self.args.DEBUG_ALL :
             print( '\n-> VaporPressureRatio', flush = True )
 
-        if not self.args.ET_amplify :
+        if self.args.noET_Amplify :
             return 1
 
         dH = 44000 # enthalpy of vaporization J/mol @ 300 K
