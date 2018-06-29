@@ -121,8 +121,8 @@ def InitTimeBasins( model ):
 
     if not model.args.noGUI :
         model.gui.RenderBasins( init = True )
-        model.gui.PlotLegend()
-        model.gui.canvas.show()
+        model.gui.PlotLegend( "InitTimeBasins" )
+        model.gui.canvas.draw()
 
 #----------------------------------------------------------------
 #
@@ -416,7 +416,7 @@ def GetBasinTidalData( model ):
     msg = 'Reading Tidal Boundary timeseries, please wait...'
     model.gui.Message( msg )
     if not model.args.noGUI :
-        model.gui.canvas.show()
+        model.gui.canvas.draw()
 
     # The csv file has 3 columns: 1 = basin number, 2 = type,
     # 3 = data file name

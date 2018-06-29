@@ -38,7 +38,7 @@ from matplotlib.pyplot import cm
 # http://matplotlib.org/examples/user_interfaces/embedding_in_tk.html
 from matplotlib.figure import Figure
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.backends.backend_tkagg import NavigationToolbar2TkAgg
+from matplotlib.backends._backend_tk import NavigationToolbar2Tk
 
 # Local modules 
 from init import InitTimeBasins
@@ -134,8 +134,8 @@ class GUI:
                               facecolor = 'grey' )
 
         self.figure_axes = self.figure.add_axes( ( 0, 0, 1, 1 ), 
-                                                 frameon = False, 
-                                                 axisbg  = 'none' )
+                                                 frameon = False,
+                                                 label = 'FloridaBayModel' )
         
         # Map limits are UTM Zone 17R in (m)
         self.figure_axes.set_xlim( ( 490000,  569000  ) )
@@ -411,8 +411,8 @@ class GUI:
         self.mapPlotVariable.trace( 'w', self.MapPlotVarUpdate )
 
         self.RenderShoals( init = True )
-        self.PlotLegend()
-        self.canvas.show()
+        self.PlotLegend( "FloridaBayModel" )
+        self.canvas.draw()
 
     #------------------------------------------------------------------
     #
@@ -435,8 +435,8 @@ class GUI:
         if self.model.args.DEBUG_ALL :
             print( '-> MapPlotVarUpdate: ', args[0], ', ', args[2] )
 
-        self.PlotLegend()
-        self.canvas.show()
+        self.PlotLegend( "MapPlotVarUpdate" )
+        self.canvas.draw()
 
     #-----------------------------------------------------------
     #
@@ -837,7 +837,7 @@ class GUI:
         color  = next( colors )
 
         figure = Figure( figsize = ( 8, 5 ), dpi = 100 )
-        axes   = figure.add_subplot( 111 )
+        axes   = figure.add_subplot( 111, label = "PlotData" )
 
         axes.plot( time, dataList[ 0 ], label = basinNames[ 0 ],
                    linewidth = 2, color = color )
@@ -900,7 +900,7 @@ class GUI:
         canvas = FigureCanvasTkAgg( figure, master = top )
 
         try :
-            canvas.show()
+            canvas.draw()
         except RuntimeError as err :
             msg = "\nPlotData: {0}. \n".format( err ) +\
                   " Try setting the start/end time to cover the data record.\n"
@@ -911,7 +911,7 @@ class GUI:
         canvas.get_tk_widget().pack( side = Tk.TOP, fill = Tk.BOTH, 
                                      expand = True )
 
-        toolbar = NavigationToolbar2TkAgg( canvas, top )
+        toolbar = NavigationToolbar2Tk( canvas, top )
         toolbar.update()
         canvas._tkcanvas.pack( side = Tk.TOP, fill = Tk.BOTH, expand = True )
 
@@ -937,7 +937,7 @@ class GUI:
                 # Initialize Basin.color with salinity color
                 Basin.SetBasinMapColor( 'Salinity', 
                                         self.model.args.salinity_legend_bounds )
-                
+
                 if not Basin.Axes_fill : 
                     PolygonList = self.figure_axes.fill( 
                         basin_xy[:,0], basin_xy[:,1], 
@@ -983,7 +983,7 @@ class GUI:
     #----------------------------------------------------------------
     # 
     #----------------------------------------------------------------
-    def PlotLegend( self, init = True ) :
+    def PlotLegend( self, label, init = True ) :
         ''' '''
 
         if self.model.args.DEBUG_ALL:
@@ -992,7 +992,9 @@ class GUI:
         # Add an axes at position rect [left, bottom, width, height] 
         # where all quantities are in fractions of figure width and height.
         # Just returns the existing axis if it already exists
-        legendAxis = self.figure.add_axes( [ 0.05, 0.95, 0.7, 0.03 ] )
+
+        legendAxis = self.figure.add_axes( [ 0.05, 0.95, 0.7, 0.03 ],
+                                           label = 'PlotLegend' + label )
 
         legend_color_map = ListedColormap( self.colors )
 

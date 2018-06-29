@@ -234,7 +234,7 @@ class Model:
             if remainder == zero_timedelta :
                 if not self.args.noGUI :
                     self.gui.current_time_label.set( str( self.current_time ) )
-                    self.gui.canvas.show()
+                    self.gui.canvas.draw()
                 else :
                     print( str( self.current_time ) )
 
@@ -270,7 +270,7 @@ class Model:
 
                     self.gui.current_time_label.set( str( self.current_time ) )
                     self.gui.RenderBasins()
-                    self.gui.canvas.show()
+                    self.gui.canvas.draw()
 
             # Transfer data values to records for plots & file output
             quotient, remainder = divmod( timeDelta, self.outputInterval )

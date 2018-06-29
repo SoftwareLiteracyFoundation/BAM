@@ -4,6 +4,9 @@
 #------------------------------------------------------------------
 def Versions() :
     '''
+    Version 1.4 2018-6-29
+      Update to Matplotlib 2.2.
+
     Version 1.3 2018-2-7
       Add coastal basin max surface water temperature timeseries (-st).
 
