@@ -1,56 +1,24 @@
-<!DOCTYPE HTML>
-<html>
-<h2>Florida Bay Assessment Model (BAM)</h2>
+## Florida Bay Assessment Model (BAM)
 
-<p>BAM is a 'basins' hydrological model of Florida Bay.  It is mass-conservative and explicitly designed to assess water levels and salinities in 54 idealized basins representing Florida Bay.  Basins are separated and connected by shoals, thereby the model conforms to a linked-node network hierarchy with basins as nodes and shoals as links.</p>
+BAM is a 'basins' hydrological model of Florida Bay.  It is mass-conservative and explicitly designed to assess water levels and salinities in 54 idealized basins representing Florida Bay.  Basins are separated and connected by shoals, thereby the model conforms to a linked-node network hierarchy with basins as nodes and shoals as links.
 
-<p>Model inputs include rainfall, evaporation, tidal elevations and freshwater runoff from the Everglades.  Interbasin fluxes are driven by hydraulic gradients developed across the shoals in response to water level elevations and are modeled with Manning's equation.</p>
+Model inputs include rainfall, evaporation, tidal elevations and freshwater runoff from the Everglades.  Interbasin fluxes are driven by hydraulic gradients developed across the shoals in response to water level elevations and are modeled with Manning's equation.
 
-<img src="./doc/manual/graphics/BAM_GUI.png" alt="BAM GUI" width="525" height="407"></img>
+![BAM GUI](./doc/manual/graphics/BAM_GUI.png)
 
-<p>A good place to start are the docstrings in <code>Notes.py</code>, and a perusal of the command line options (e.g. <code>./bam.py -h</code>).</p>
+A good place to start are the docstrings in `Notes.py`, and a perusal of the command line options (e.g. `./bam.py -h`).
 
-<h3>Important options for run control</h3>
+### Important options for run control
 
-<table>
-  <tr>
-    <th>Switch</th>
-    <th>Description</th>
-    <th>Example</th>
-  </tr>
-  <tr>
-    <td><code>-p PATH</code></td>
-    <td>Top level path of BAM</td>
-    <td><code>-p /opt/hydro/models/PyBAM/</code></td>
-  </tr>
-  <tr>
-    <td><code>-t TIMESTEP</code></td>
-    <td>timestep (s)</td>
-    <td><code>-t 360</code></td>
-  </tr>
-  <tr>
-    <td><code>-S START</code></td>
-    <td>Start date time</td>
-    <td><code>-S "2010-01-01 00:00"</code></td>
-  </tr>
-  <tr>
-    <td><code>-E END</code></td>
-    <td>End date time</td>
-    <td><code>-E "2010-01-01 08:00"</code></td>
-  </tr>
-  <tr>
-    <td><code>-oi OUTPUTINTERVAL</code></td>
-    <td>Time interval (hr) of output data</td>
-    <td><code>-oi 1</code></td>
-  </tr>
-  <tr>
-    <td><code>-bo BASINOUTPUTDIR</code></td>
-    <td>Directory to write basin outputs</td>
-    <td><code>-bo ~/BAM.out</code></td>
-  </tr>
-</table>
+Switch|Description|Example
+------|-----------|-------
+-p PATH|Top level path of BAM|-p /opt/hydro/models/PyBAM/
+-t TIMESTEP|timestep (s)|-t 360
+-S START|Start date time|-S "2010-01-01 00:00"
+-E END|End date time|-E "2010-01-01 08:00"
+-oi OUTPUTINTERVAL|Time interval (hr) of output data|-oi 1
+-bo BASINOUTPUTDIR|Directory to write basin outputs|-bo ~/BAM.out
 
-<h3>Notes</h3>
+### Notes
 
-<p>In a departure from traditional numerical models, BAM is pure <img src="./doc/manual/graphics/python-logo.png" alt="Python" width="75" height="30"></img>.</p>
-</html>
+In a departure from traditional numerical models, BAM is pure ![Python](./doc/manual/graphics/python-logo.png)
