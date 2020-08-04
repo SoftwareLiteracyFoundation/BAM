@@ -1,6 +1,7 @@
 '''Constants for the Bay Assessment Model (BAM)'''
 
-Version  = 'Version 1.4 2018-6-29'
+Version  = 'Version 1.4.1 2020-8-4'
+#Version = 'Version 1.4 2018-6-29'
 #Version = 'Version 1.3 2018-2-7'
 #Version = 'Version 1.2 2017-11-12'
 #Version = 'Version 1.1 2017-3-27'

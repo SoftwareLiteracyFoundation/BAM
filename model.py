@@ -6,7 +6,7 @@ from os.path     import exists as path_exists
 from time        import time, asctime, localtime
 from datetime    import timedelta, datetime
 from collections import OrderedDict as odict
-from threading   import Thread, Condition
+from threading   import Thread, Condition, Event
 from math        import exp
 import tkinter as Tk
 
@@ -96,6 +96,9 @@ class Model:
         # Condition variable to pause the modelLoop
         self.ConditionVar = Condition()
 
+        # Event object to signal gui thread to canvas.draw()
+        self.CanvasDrawEvent = Event()
+
         self.gui = None
 
     #-----------------------------------------------------------
@@ -105,6 +108,10 @@ class Model:
         '''Execute a model simulation.
         Called from the runButton in gui.py'''
 
+        if self.args.DEBUG or self.args.DEBUG_ALL :
+            import faulthandler
+            faulthandler.enable()
+            
         if self.args.DEBUG_ALL :
             print( '-> Run' )
 
@@ -130,15 +137,14 @@ class Model:
             self.ModelLoop()
 
         else :
-            loopThread = Thread( target = self.ModelLoop,
-                                 name = 'BAM Model Loop' )
-            loopThread.start()
+            modelThread = Thread( target = self.ModelLoop,
+                                  name = 'BAM Model Loop' )
+            modelThread.start() # do not block viz join()
 
     #-----------------------------------------------------------
     #
     #-----------------------------------------------------------
     def ModelLoop( self ):
-
         # Prepare to write output
         # Probe the basinOutputDir and create if needed
         output_dir = self.args.basinOutputDir 
@@ -233,8 +239,15 @@ class Model:
             quotient, remainder = divmod( timeDelta, self.timeLabelUpdate )
             if remainder == zero_timedelta :
                 if not self.args.noGUI :
-                    self.gui.current_time_label.set( str( self.current_time ) )
-                    self.gui.canvas.draw()
+                    self.gui.current_time_label.set(str(self.current_time))
+                    
+                    if self.args.noThread :
+                        self.gui.canvas.draw() # safe to call from this thread
+                    else :
+                        # Cannot call canvas.draw() from separate thread!
+                        # Signal event to mainloop thread to DrawCanvas()
+                        self.CanvasDrawEvent.set()
+                    
                 else :
                     print( str( self.current_time ) )
 
@@ -270,7 +283,12 @@ class Model:
 
                     self.gui.current_time_label.set( str( self.current_time ) )
                     self.gui.RenderBasins()
-                    self.gui.canvas.draw()
+                    if self.args.noThread :
+                        self.gui.canvas.draw() # safe to call from this thread
+                    else :
+                        # Cannot call canvas.draw() from separate thread!
+                        # Signal event to mainloop thread to DrawCanvas()
+                        self.CanvasDrawEvent.set()
 
             # Transfer data values to records for plots & file output
             quotient, remainder = divmod( timeDelta, self.outputInterval )
@@ -318,6 +336,21 @@ class Model:
 
         self.gui.Message( ' Finished.\n' )
         
+    #-----------------------------------------------------------
+    #
+    #-----------------------------------------------------------
+    def DrawCanvas( self ):
+        '''When event is signalled from modelThread ModelLoop()
+           update the canvas from this thread that has the GUI mainloop()'''
+        
+        if self.CanvasDrawEvent.is_set() : # Draw only if signalled
+            self.gui.canvas.draw()
+            self.CanvasDrawEvent.clear()
+
+        # Disappointing that Tkinter TkAgg cannot have calls to canvas.draw
+        # from other threads.  Check twice-per-second. 
+        self.gui.Tk_root.after( 500, self.DrawCanvas ) # Re-register callback
+            
     #----------------------------------------------------------------
     # 
     #----------------------------------------------------------------
@@ -599,7 +632,7 @@ class Model:
            status = Running.'''
         if self.args.DEBUG:
             print( '-> Pause' )
-    
+
         if self.state == self.status.Paused :
             # Revert from status Paused to status Running
             self.ConditionVar.acquire()

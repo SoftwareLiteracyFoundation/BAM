@@ -4,6 +4,10 @@
 #------------------------------------------------------------------
 def Versions() :
     '''
+    Version 1.4.1 2020-8-4
+      Update to Matplotlib 3.1.
+      canvas.draw() cannot be called from thread outside Tk mainloop. 
+
     Version 1.4 2018-6-29
       Update to Matplotlib 2.2.
 
@@ -41,18 +45,17 @@ def Versions() :
 #------------------------------------------------------------------
 def Installation() :
     '''
-    Installation:
+    Installation (Debian/Ubuntu):
 
-    sudo apt-get install python3
-    sudo apt-get install python3-tk
-    sudo apt-get install tk-dev
-    sudo apt-get install libffi-dev  # for cairocffi/matplotlib.backends
-    sudo apt-get install python3-pip
-    sudo pip3    install numpy
-    sudo pip3    install scipy
-    sudo pip3    install cairocffi   # for matplotlib.backends
-    sudo pip3    install matplotlib
-    sudo pip3    install pyshp       # https://github.com/GeospatialPython/pyshp
+    apt install python3
+    apt install python3-tk
+    apt install tk-dev
+    apt install libffi-dev  # for cairocffi/matplotlib.backends
+    python3 -m pip install numpy
+    python3 -m pip install scipy
+    python3 -m pip install cairocffi  # for matplotlib.backends
+    python3 -m pip install matplotlib
+    python3 -m pip install pyshp      # github.com/GeospatialPython/pyshp
     '''
     pass
 

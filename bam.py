@@ -28,7 +28,11 @@ def main():
 
     args = ParseCmdLine()
 
-    # Initialize the root Tk object
+    if args.DEBUG or args.DEBUG_ALL:
+        import faulthandler
+        faulthandler.enable()
+
+    # Initialize the root Tk object if gui is used 
     root = None
     if not args.noGUI :
         root = Tk.Tk()
@@ -38,23 +42,25 @@ def main():
     # Basins and Shoals maps
     model = bam_model.Model( args )
     
-    # Create GUI
+    # Create GUI object & model interface objects
     model.gui = gui.GUI( root, model )
     if not args.noGUI :
         model.gui.FloridaBayModel_Tk()
+        
+        if not args.noThread :
+            # Call DrawCanvas() after mainloop for modelThread events
+            root.after( 500, model.DrawCanvas )
 
     InitTimeBasins( model )
 
     model.gui.InitPlotVars() # Set default outputs
 
-    if not args.noGUI :
-        # Enter the Tk mainloop
-        model.gui.Tk_root.mainloop()
-    else :
+    if args.noGUI :
         model.gui.Message( model.Version )
         model.gui.Message( model.args.commandLine + '\n' )
-        # Run the model
-        model.Run()
+        model.Run() # Run the model explicitly in this thread
+    else :
+        model.gui.Tk_root.mainloop() # Enter the Tk mainloop
 
 #--------------------------------------------------------------
 # 
@@ -396,6 +402,6 @@ def ParseCmdLine():
     return args
 
 #----------------------------------------------------------------------------
-# Provide for cmd line invocation: not executed on import
+# Provide for cmd line invocation and clean module loading
 if __name__ == "__main__":
     main()
