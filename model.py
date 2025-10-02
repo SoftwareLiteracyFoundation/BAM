@@ -3,6 +3,7 @@
 # Python distribution modules
 from os          import mkdir
 from os.path     import exists as path_exists
+from os.path     import join as path_join
 from time        import time, asctime, localtime
 from datetime    import timedelta, datetime
 from collections import OrderedDict as odict
@@ -324,7 +325,8 @@ class Model:
             Basin.WriteData()
 
         try :
-            fd = open(self.args.basinOutputDir +'/'+ self.args.runInfoFile, 'w')
+            fd = open( path_join(self.args.basinOutputDir,
+                                 self.args.runInfoFile), 'w')
             for line in self.run_info :
                 fd.write( line )
             fd.close()

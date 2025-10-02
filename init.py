@@ -2,6 +2,7 @@
 
 # Python distribution modules
 from os          import cpu_count
+from os.path     import join as path_join
 from datetime    import timedelta, datetime
 from collections import OrderedDict as odict
 strptime = datetime.strptime
@@ -262,7 +263,7 @@ def GetBasinAreaDepths( model ):
     # The csv file has 12 columns, 1 = basin number
     # 2 - 11 = area at each depth, 12 = land area, 
     # first row is header, get the depths from it
-    fd   = open( model.args.path + model.args.basinDepth, 'r' )
+    fd   = open( path_join(model.args.path, model.args.basinDepth), 'r' )
     rows = fd.readlines()
     fd.close()
 
@@ -323,7 +324,7 @@ def GetBasinParameters( model ):
     # 3 = [ Rain stations ], 4 = [ Rain scales ], 5 = Salinity station,
     # 6 = ET Amplify
     # first row is header
-    fd   = open( model.args.path + model.args.basinParameters, 'r' )
+    fd   = open( path_join(model.args.path, model.args.basinParameters), 'r' )
     rows = fd.readlines()
     fd.close()
 
@@ -420,7 +421,7 @@ def GetBasinTidalData( model ):
 
     # The csv file has 3 columns: 1 = basin number, 2 = type,
     # 3 = data file name
-    fd   = open( model.args.path + model.args.basinTide, 'r' )
+    fd   = open( path_join(model.args.path, model.args.basinTide), 'r' )
     rows = fd.readlines()
     fd.close()
 
@@ -536,7 +537,7 @@ def GetSeasonalMSL( model ):
         print( '\n-> GetSeasonalMSL', flush = True )
 
     # The csv file has 2 columns: 1 = Date, 2 = anomaly
-    fd   = open( model.args.path + model.args.seasonalMSL, 'r' )
+    fd   = open( path_join(model.args.path, model.args.seasonalMSL), 'r' )
     rows = fd.readlines()
     fd.close()
     
@@ -577,7 +578,7 @@ def GetBasinRainData( model ):
     # HC_cm_day, JK_cm_day, LB_cm_day, LM_cm_day, LR_cm_day, LS_cm_day,
     # MK_cm_day, PK_cm_day, TC_cm_day, TR_cm_day, WB_cm_day
     # first row is header
-    fd   = open( model.args.path + model.args.basinRain, 'r' )
+    fd   = open( path_join(model.args.path, model.args.basinRain), 'r' )
     rows = fd.readlines()
     fd.close()
 
@@ -647,7 +648,7 @@ def GetBasinSalinityData( model ):
     # PK, TC, TR, WB, MB, MD, TP, Gulf_1, Ocean_1
     # First row is header
     try :
-        fd = open( model.args.path + model.args.salinityFile, 'r' )
+        fd = open( path_join(model.args.path, model.args.salinityFile), 'r' )
         rows = fd.readlines()
         fd.close()
 
@@ -764,7 +765,7 @@ def GetETData( model ):
 
     # The csv file has 2 columns, 1 = YYYY-MM-DD, 2 = PET mm/day
     # first row is header
-    fd   = open( model.args.path + model.args.ET, 'r' )
+    fd   = open( path_join(model.args.path, model.args.ET), 'r' )
     rows = fd.readlines()
     fd.close()
 
@@ -810,7 +811,7 @@ def GetTemperatureData( model ):
 
     # The csv file has 2 columns, 1 = YYYY-MM-DD, 2 = MaxTemp (C)
     # first row is header
-    fd   = open( model.args.path + model.args.surfaceTemp, 'r' )
+    fd   = open( path_join(model.args.path, model.args.surfaceTemp), 'r' )
     rows = fd.readlines()
     fd.close()
 
@@ -860,7 +861,7 @@ def GetBasinRunoffStageData( model ):
         print( '\n-> GetBasinRunoffStageData', flush = True )
 
     # Get mapping of EDEN stage station to model basins
-    fd   = open( model.args.path + model.args.basinStageRunoffMap, 'r' )
+    fd   = open(path_join(model.args.path, model.args.basinStageRunoffMap), 'r')
     rows = fd.readlines()
     fd.close()
 
@@ -932,7 +933,7 @@ def GetBasinRunoffStageData( model ):
     # 2 - 9 = Daily EDEN stage in (m) offset to MSL anomaly:
     # S22, S21, S20, S19, S18, S17, S16, S15
     # first row is header
-    fd   = open( model.args.path + model.args.basinStageRunoff, 'r' )
+    fd   = open( path_join(model.args.path, model.args.basinStageRunoff), 'r' )
     rows = fd.readlines()
     fd.close()
     
@@ -995,7 +996,7 @@ def GetBasinDynamicBCData( model ):
         print( '\n-> GetBasinDynamicBCData', flush = True )
 
     # Get mapping of model basins to BC timeseries
-    fd   = open( model.args.path + model.args.basinBCFile, 'r' )
+    fd   = open( path_join(model.args.path, model.args.basinBCFile), 'r' )
     rows = fd.readlines()
     fd.close()
 
@@ -1046,7 +1047,7 @@ def GetBasinDynamicBCData( model ):
         # Load flow or stage data into the appropriate dictionary
         # The csv file has 2 columns, 1 = YYYY-MM-DD, 2 = value
         # first row is header
-        fd   = open( model.args.path + bc_file, 'r' )
+        fd   = open( path_join(model.args.path, bc_file), 'r' )
         rows = fd.readlines()
         fd.close()
 
@@ -1113,7 +1114,7 @@ def GetBasinFixedBoundaryCondition( model ):
 
     # The csv file has 4 columns: 1 = basin number, 2 = basin name,
     # 3 = type, 4 = value.  Value must be a numeric. 
-    fd   = open( model.args.path + model.args.basinFixedBCFile, 'r' )
+    fd   = open( path_join(model.args.path, model.args.basinFixedBCFile), 'r' )
     rows = fd.readlines()
     fd.close()
 
@@ -1178,7 +1179,7 @@ def GetBasinStageData( model ):
     # MK, PK, TC, TR, WB, TP, MD, MB
     # first row is header
     try :
-        fd = open( model.args.path + model.args.basinStage, 'r' )
+        fd = open( path_join(model.args.path, model.args.basinStage), 'r' )
         rows = fd.readlines()
         fd.close()
 
@@ -1253,7 +1254,7 @@ def InitialBasinValues( model ):
     if model.args.DEBUG_ALL :
         print( '\n-> InitialBasinValues', flush = True )
 
-    init_file = model.args.path + model.args.basinInit
+    init_file = path_join(model.args.path, model.args.basinInit)
 
     # The csv file has 11 columns, 1 = basin number, 2 = Stage, 3 = Temp,
     # 4 = DO, 5 = Salinity, 6 = TOC, 7 = TOP, 8 = TON, 9 = Phosphate
@@ -1341,7 +1342,7 @@ def CreateShoals( model ):
     # The csv file has 14 columns, 1 = shoal number, 2 = shoal width,
     # 3 - 12 = length at each depth, 13 = land length, 14 = Mannings
     # first row is header, get the depths from it
-    fd = open( model.args.path + model.args.shoalLength, 'r' )
+    fd = open( path_join(model.args.path, model.args.shoalLength), 'r' )
     rows = fd.readlines()
     fd.close()
 
@@ -1428,7 +1429,7 @@ def GetShoalParameters( model ):
     # The csv file has 3 columns
     # 1 = shoal number, 2 = Basin_A, 3 = Basin_B
     # first row is header
-    fd = open( model.args.path + model.args.shoalParameters, 'r' )
+    fd = open( path_join(model.args.path, model.args.shoalParameters), 'r' )
     rows = fd.readlines()
     fd.close()
 

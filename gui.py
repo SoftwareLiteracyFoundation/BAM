@@ -5,6 +5,7 @@ from subprocess  import Popen
 from datetime    import timedelta, datetime
 from collections import OrderedDict as odict
 from os.path     import exists as path_exists
+from os.path     import join as path_join
 from random      import randint
 
 strptime = datetime.strptime
@@ -21,7 +22,7 @@ from   tkinter import ttk # tk themed widgets within tkinter (tkinter.ttk)
 # Community modules
 from numpy import linspace, isnan
 from numpy import all as npall
-from numpy import NaN as npNaN
+from numpy import nan as npNaN
 
 from matplotlib.colors   import ListedColormap
 from matplotlib.colors   import BoundaryNorm
@@ -115,11 +116,11 @@ class GUI:
         icon = None
 
         try :
-            icon = Tk.PhotoImage( file = self.model.args.path +\
-                                 'data/init/PyFBM_icon.png' )
+            icon = Tk.PhotoImage( file = path_join( self.model.args.path,
+                                 'data','init','PyFBM_icon.png' ) )
         except :
-            icon = Tk.PhotoImage( file = self.model.args.path +\
-                                 'data/init/PyFBM_icon.gif' )
+            icon = Tk.PhotoImage( file = path_join( self.model.args.path,
+                                 'data','init','PyFBM_icon.gif' ) )
 
         if icon :
             self.Tk_root.iconphoto( True, icon )
@@ -618,8 +619,8 @@ class GUI:
             basinNames.append( Basin.name )
 
             # Read the basin .csv data to get [times] and [data]
-            file_name = self.plot_dir + '/' + \
-                        Basin.name + self.model.args.runID + '.csv'
+            file_name = path_join( self.plot_dir,
+                                   Basin.name + self.model.args.runID + '.csv' )
             try :
                 fd = open( file_name, 'r' )
             except OSError as err :
@@ -1286,7 +1287,7 @@ class GUI:
             print( '-> OpenInitFile(): ', flush = True ) 
 
         input_file = filedialog.askopenfilename(
-            initialdir  = self.model.args.path + 'data/init/',
+            initialdir  = path_join(self.model.args.path,'data','init',''),
             initialfile = 'Basin_Initial_Values.csv', 
             filetypes   = [('Basin Init Files', '*.csv')],
             multiple    = False,
@@ -1301,9 +1302,10 @@ class GUI:
         # have the same prefix specified in args.path (since args.path
         # may be referring to a symbolic link), strip off everything
         # prior to data/init  : this is stupid since it now requires
-        # this file to reside in data/init... 
-        input_file = input_file[ input_file.rfind( 'data/init/' ) : ]
-        
+        # this file to reside in data/init...
+        data_init_ = path_join( 'data','init','' )
+        input_file = input_file[ input_file.rfind( data_init_ ) : ]
+
         self.model.args.basinInit = input_file
 
         InitTimeBasins( self.model )
@@ -1317,7 +1319,7 @@ class GUI:
             print( '-> EditFile(): ', flush = True ) 
 
         edit_file = filedialog.askopenfilename(
-            initialdir  = self.model.args.path,
+            initialdir = self.model.args.path,
             # initialfile = '', 
             filetypes = [ ('Data',   '*.csv'), 
                           ('Source', '*.py' ),
@@ -1328,7 +1330,7 @@ class GUI:
         if not edit_file :
             return
 
-        cmdLine = self.model.args.editor + ' ' + edit_file.replace(' ', '\ ')
+        cmdLine = self.model.args.editor + ' ' + edit_file # .replace(' ', '\ ')
 
         try :
             sp = Popen( cmdLine, shell = True )

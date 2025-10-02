@@ -10,6 +10,7 @@
 import sys
 from   argparse import ArgumentParser
 from   os       import getenv, getcwd
+from   os.path  import join as path_join
 import tkinter as Tk
 
 # Community modules
@@ -74,8 +75,8 @@ def ParseCmdLine():
     parser.add_argument('-p', '--path',
                         dest    = 'path', type = str, 
                         action  = 'store', 
-                        default = './',
-                        help    = 'Top level path of BAM: -p ./' )
+                        default = path_join('.',''),
+                        help    = 'Top level BAM path: -p ' + path_join('.',''))
 
     parser.add_argument('-t', '--timestep',
                         dest    = 'timestep', type = int, 
@@ -100,7 +101,7 @@ def ParseCmdLine():
                         action  = 'store', 
                         default = 0.0001,
                         help    = 'velocity iteration tolerance (m/s):' +\
-                                  ' -vt 0.0001' )
+                                  ' -vt 0.0001')
 
     parser.add_argument('-it', '--max_iteration',
                         dest    = 'max_iteration', type = int, 
@@ -108,100 +109,108 @@ def ParseCmdLine():
                         default = 3000,
                         help    = 'velocity iteration limit: -it 3000')
 
+    basins_ = path_join('data','GIS','FLBayBasins')
     parser.add_argument('-bn', '--basins',
                         dest    = 'basinShapeFile', type = str, 
                         action  = 'store', 
-                        default = 'data/GIS/FLBayBasins',
-                        help    = 'Basins shape file: -bn data/GIS/FLBayBasins')
+                        default = basins_,
+                        help    = 'Basins shape file: -bn ' + basins_)
 
+    basinDepth_ = path_join('data','init','Basin_Area_Depth.csv')
     parser.add_argument('-bd', '--basinDepth',
                         dest    = 'basinDepth', type = str, 
                         action  = 'store', 
-                        default = 'data/init/Basin_Area_Depth.csv',
+                        default = basinDepth_,
                         help    = 'Basin area depth input file: -bd ' +\
-                                  'data/init/Basin_Area_Depth.csv' )
+                                  basinDepth_)
 
+    basinParameters_ = path_join('data','init','Basin_Parameters.csv')
     parser.add_argument('-bp', '--basinParameter',
                         dest    = 'basinParameters', type = str, 
                         action  = 'store', 
-                        default = 'data/init/Basin_Parameters.csv',
+                        default = basinParameters_,
                         help    = 'Basin parameters input file: -bp ' +\
-                                  'data/init/Basin_Parameters.csv' )
+                                  basinParameters_)
 
+    basinInit_ = path_join('data','init','Basin_Initial_Values.csv')
     parser.add_argument('-bi', '--basinInit',
                         dest    = 'basinInit', type = str, 
                         action  = 'store', 
-                        default = 'data/init/Basin_Initial_Values.csv',
+                        default = basinInit_,
                         help    = 'Basin initial state variable input file:' +\
-                                  '-bi data/init/Basin_Initial_Values.csv' )
+                                  '-bi ' + basinInit_)
 
+    basinTide_ = path_join('data','Boundary','Basin_Tide_Boundary_2000_2016.csv')
     parser.add_argument('-bt', '--basinTide',
                     dest    = 'basinTide', type = str, 
                     action  = 'store', 
-                    default = 'data/Boundary/Basin_Tide_Boundary_2000_2016.csv',
-                    help    = 'Basin tide boundary data files: -bt ' +\
-                              'data/Boundary/Basin_Tide_Boundary_2000_2016.csv')
+                    default = basinTide_,
+                    help    = 'Basin tide boundary data files: -bt '+basinTide_)
 
+    basinRain_ = path_join('data','Rain',
+                           'DailyRainFilled_cm_1999-9-1_2016-12-31.csv')
     parser.add_argument('-br', '--basinRain',
                         dest    = 'basinRain', type = str, 
                         action  = 'store', 
-                        default = 'data/Rain/' +\
-                                  'DailyRainFilled_cm_1999-9-1_2016-12-31.csv',
-                        help    = 'Daily rain data file: -br data/Rain/' +\
-                                  'DailyRainFilled_cm_1999-9-1_2016-12-31.csv' )
+                        default = basinRain_,
+                        help    = 'Daily rain data file: -br ' + basinRain_)
 
+    basinBCFile_ = path_join('data','Boundary','Basin_Boundary_Condition.csv')
     parser.add_argument('-bc', '--basinBCFile',
                         dest    = 'basinBCFile', type = str, 
                         action  = 'store', 
-                        default = 'data/Boundary/Basin_Boundary_Condition.csv',
+                        default = basinBCFile_,
                         help    = 'Basin boundary condition data files: -bc ' +\
-                                  'data/Boundary/Basin_Boundary_Condition.csv')
+                                  basinBCFile_)
 
+    basinFixedBCFile_ = path_join('data','Boundary',
+                                  'Basin_Fixed_Boundary_Condition.csv')
     parser.add_argument('-bf', '--basinFixedBCFile',
                    dest    = 'basinFixedBCFile', type = str, 
                    action  = 'store', 
-                   default = 'data/Boundary/Basin_Fixed_Boundary_Condition.csv',
+                   default = basinFixedBCFile_,
                    help    = 'Basin fixed boundary condition data files: -bf '+\
-                             'data/Boundary/Basin_Fixed_Boundary_Condition.csv')
+                             basinFixedBCFile_)
 
+    basinOutputDir_ = path_join(home_dir,'BAM.out','')
     parser.add_argument('-bo', '--basinOutput',
                         dest    = 'basinOutputDir', type = str, 
                         action  = 'store', 
-                        default = home_dir + '/BAM.out',
+                        default = basinOutputDir_,
                         help    = 'Directory to write basin outputs: -bo ' +\
-                                  home_dir + '/BAM.out' )
+                                  basinOutputDir_)
 
+    basinStageRunoff_ = path_join('data','Runoff','EDEN_Stage_OffsetMSL.csv')
     parser.add_argument('-bR', '--basinStageRunoff',
                         dest    = 'basinStageRunoff', type = str, 
                         action  = 'store', 
-                        default = 'data/Runoff/EDEN_Stage_OffsetMSL.csv',
+                        default = basinStageRunoff_,
                         help    = 'Daily runoff EDEN stage data file: ' +\
-                                  '-bR data/Runoff/' +\
-                                  'EDEN_Stage_OffsetMSL.csv' )
+                                  '-bR ' + basinStageRunoff_)
 
+    basinStageRunoffMap_ = path_join('data','Boundary',
+                                     'Basin_Runoff_Boundary.csv')
     parser.add_argument('-bS', '--basinStageRunoffMap',
                         dest    = 'basinStageRunoffMap', type = str, 
                         action  = 'store', 
-                        default = 'data/Boundary/Basin_Runoff_Boundary.csv',
-                        help    = 'Mapping of EDEN stage to basin: ' +\
-                                  '-bS data/Boundary/Basin_Runoff_Boundary.csv')
+                        default = basinStageRunoffMap_,
+                        help    = 'Mapping of EDEN stage to basin: -bS ' +\
+                                  basinStageRunoffMap_)
 
+    basinStage_ = path_join('data','Stage','DailyStage_1999-9-1_2016-12-31.csv')
     parser.add_argument('-bs', '--basinStage',
                         dest    = 'basinStage', type = str, 
                         action  = 'store', 
-                        default = 'data/Stage/' +\
-                                  'DailyStage_1999-9-1_2016-12-31.csv',
-                        help  = 'Daily stage data file: -bs data/Stage/'+\
-                                'DailyStage_1999-9-1_2016-12-31.csv' )
+                        default = basinStage_,
+                        help  = 'Daily stage data file: -bs ' + basinStage_)
 
+    surfaceTemp_ = path_join('data','Temperature',
+                             'MaxTemp_Filled_1999-9-1_2017-6-30.csv')
     parser.add_argument('-st', '--temperature',
                         dest    = 'surfaceTemp', type = str, 
                         action  = 'store', 
-                        default = 'data/Temperature/' +\
-                                  'MaxTemp_Filled_1999-9-1_2017-6-30.csv',
-                        help    = 'Temperature data file: -st ' +\
-                                  'data/Temperature/' +\
-                                  'MaxTemp_Filled_1999-9-1_2017-6-30.csv' )
+                        default = surfaceTemp_,
+                        help    = 'Temperature data file: -st ' + surfaceTemp_)
 
     parser.add_argument('-rt', '--reference_temperature',
                         dest    = 'reference_temperature', type = float, 
@@ -214,13 +223,12 @@ def ParseCmdLine():
                         action  = 'store_true', default = False,
                         help    = 'Do not amplify ET from temperature: -na' )
 
+    ET_ = path_join('data','ET','PET_1999-9-1_2016-12-31.csv')
     parser.add_argument('-et', '--ET',
                         dest    = 'ET', type = str, 
                         action  = 'store', 
-                        default = 'data/ET/' +\
-                                  'PET_1999-9-1_2016-12-31.csv',
-                        help    = 'PET data file: -et ' +\
-                                  'data/ET/PET_1999-9-1_2016-12-31.csv' )
+                        default = ET_,
+                        help    = 'PET data file: -et ' + ET_)
 
     parser.add_argument('-es', '--ET scale',
                         dest    = 'ET_scale', type = float, 
@@ -228,25 +236,28 @@ def ParseCmdLine():
                         default = 1,
                         help    = 'Scale factor on global ET: -es 1' )
 
+    shoalShapeFile_ = path_join('data','GIS','FathomLines')
     parser.add_argument('-s', '--shoals',
                         dest    = 'shoalShapeFile', type = str, 
                         action  = 'store', 
-                        default = 'data/GIS/FathomLines',
-                        help    = 'Shoals shape file: -s data/GIS/FathomLines')
+                        default = shoalShapeFile_,
+                        help    = 'Shoals shape file: -s ' + shoalShapeFile_)
 
+    shoalParameters_ = path_join('data','init','Shoal_Parameters.csv')
     parser.add_argument('-sp', '--shoalParameters',
                         dest    = 'shoalParameters', type = str, 
                         action  = 'store', 
-                        default = 'data/init/Shoal_Parameters.csv',
-                        help    = 'Shoal to basin mapping file:'+\
-                                  '-sp data/init/Shoal_Parameters.csv' )
+                        default = shoalParameters_,
+                        help    = 'Shoal to basin mapping file: ' +\
+                                  shoalParameters_)
 
+    shoalLength_ = path_join('data','init','Shoal_Length_Depth.csv')
     parser.add_argument('-sl', '--shoalLength',
                         dest    = 'shoalLength', type = str, 
                         action  = 'store', 
-                        default = 'data/init/Shoal_Length_Depth.csv',
+                        default = shoalLength_,
                         help    = 'Shoal width and length depth input file:' +\
-                                  '-sl data/init/Shoal_Length_Depth.csv' )
+                                  '-sl ' + shoalLength_)
 
     parser.add_argument('-sm', '--shoalManning',
                         dest    = 'shoalManning', type = float, 
@@ -254,20 +265,22 @@ def ParseCmdLine():
                         default = None,
                         help    = 'Manning friction for all shoals: -sm 0.1' )
 
+    salinityFile_ = path_join('data','Salinity',
+                              'DailySalinityFilled_1999-9-1_2016-12-31.csv')
     parser.add_argument('-sf', '--salinityFile',
                         dest    = 'salinityFile', type = str, 
                         action  = 'store', 
-                        default = 'data/Salinity/' +\
-                                  'DailySalinityFilled_1999-9-1_2016-12-31.csv',
-                        help  = 'Daily salinity data file: -sf data/Salinity/'+\
-                                'DailySalinityFilled_1999-9-1_2016-12-31.csv' )
+                        default = salinityFile_,
+                        help  = 'Daily salinity data file: -sf ' +\
+                                salinityFile_)
 
+    seasonalMSL_ = path_join('data','Tide','MSL_Anomaly.csv')
     parser.add_argument('-msl', '--seasonalMSL',
                         dest    = 'seasonalMSL', type = str, 
                         action  = 'store', 
-                        default = 'data/Tide/MSL_Anomaly.csv',
+                        default = seasonalMSL_,
                         help    = 'Seasonal MSL: -msl data/Tide/' +\
-                                  'MSL_Anomaly.csv')
+                                  seasonalMSL_)
 
     parser.add_argument('-si', '--salinityInit',
                         dest   = 'salinityInit', type = str, 
@@ -380,8 +393,7 @@ def ParseCmdLine():
     args = parser.parse_args()
 
     # Ensure path has terminator
-    if not args.path.endswith( '/' ) :
-        args.path = args.path + '/'
+    args.path = path_join( args.path, '' )
 
     # Add the home directory
     args.homeDir = home_dir

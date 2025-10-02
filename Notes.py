@@ -4,6 +4,10 @@
 #------------------------------------------------------------------
 def Versions() :
     '''
+    Version 1.4.2 2025-9-15
+      Replace numpy.NaN alias with numpy.nan
+      Use os.path.join (path_join) to accomodate Windows path
+
     Version 1.4.1 2020-8-4
       Update to Matplotlib 3.1.
       canvas.draw() cannot be called from thread outside Tk mainloop. 

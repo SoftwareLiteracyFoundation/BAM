@@ -2,6 +2,7 @@
 
 # Python distribution modules
 from collections import OrderedDict as odict
+from os.path import join as path_join
 
 # Local modules
 import constants
@@ -196,7 +197,7 @@ class Basin:
         file_name = self.name + self.model.args.runID + '.csv'
 
         try :
-            fd = open( self.model.args.basinOutputDir + '/' + file_name, 'w' )
+            fd = open(path_join(self.model.args.basinOutputDir,file_name), 'w')
         except OSError :
             msg = 'WriteData: failed to open file ' + file_name + ' in ' +\
                   self.model.args.basinOutputDir + '\n'

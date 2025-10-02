@@ -2,6 +2,7 @@
    Model (BAM)'''
 
 # Python distribution modules
+from os.path  import join as path_join
 from datetime import datetime
 strptime = datetime.strptime
 
@@ -51,7 +52,7 @@ def ReadTideBoundaryData( args ) :
     # 1990-01-01 12:00 AM EST, -0.086
     # 1990-01-01 1:00 AM EST, 0.166
     try:
-        fd = open( path + data_file, 'r' )
+        fd = open( path_join(path, data_file), 'r' )
     except OSError as err :
         msg = "ReadTideBoundaryData() OS error: {0}\n".format( err )
         print( msg, flush = True )
