@@ -324,7 +324,8 @@ class Model:
             Basin.WriteData()
 
         try :
-            fd = open(self.args.basinOutputDir +'/'+ self.args.runInfoFile, 'w')
+            fd = open(self.args.basinOutputDir +'/'+ self.args.runInfoFile, 'w',
+                      encoding='utf-8', errors='replace')
             for line in self.run_info :
                 fd.write( line )
             fd.close()

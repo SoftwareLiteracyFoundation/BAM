@@ -70,7 +70,10 @@ def ReadTideBoundaryData( args ) :
         row   = rows[ i ]
         words = row.split(',')
 
-        date_time = strptime( words[ 0 ], '%Y-%m-%d %I:%M %p %Z' ) 
+        # Strip trailing timezone abbreviation (e.g. "EDT", "EST") — %Z is
+        # unreliable on Windows; the tz offset is unused by the model anyway.
+        dt_str = ' '.join( words[ 0 ].split()[:3] )
+        date_time = strptime( dt_str, '%Y-%m-%d %I:%M %p' )
         datetimes.append( date_time )
         times.append( (date_time - datetime(1970, 1, 1) ).total_seconds() )
 

@@ -21,7 +21,7 @@ from   tkinter import ttk # tk themed widgets within tkinter (tkinter.ttk)
 # Community modules
 from numpy import linspace, isnan
 from numpy import all as npall
-from numpy import NaN as npNaN
+from numpy import nan as npNaN
 
 from matplotlib.colors   import ListedColormap
 from matplotlib.colors   import BoundaryNorm
@@ -423,7 +423,10 @@ class GUI:
             self.msgText.insert( Tk.END, msg )
             self.msgText.see   ( Tk.END )
         else :
-            print( msg, end = '' )
+            try:
+                print( msg, end = '' )
+            except UnicodeEncodeError:
+                print( msg.encode( 'ascii', 'replace' ).decode( 'ascii' ), end = '' )
 
         self.model.run_info.append( msg )
 
