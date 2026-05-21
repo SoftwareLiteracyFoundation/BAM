@@ -37,8 +37,15 @@ from matplotlib.pyplot import cm
 # Modules to embed matplotlib figure in a Tkinter window, see:
 # http://matplotlib.org/examples/user_interfaces/embedding_in_tk.html
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.backends._backend_tk import NavigationToolbar2Tk
+try:
+    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+    from matplotlib.backends._backend_tk import NavigationToolbar2Tk
+except ImportError:
+    # Headless server (no display / Pillow built without ImageTk).
+    # These are only used when the GUI is actually instantiated;
+    # running with -ng (noGUI) never reaches that code path.
+    FigureCanvasTkAgg = None
+    NavigationToolbar2Tk = None
 
 # Local modules 
 from init import InitTimeBasins
