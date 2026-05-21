@@ -76,23 +76,24 @@ class GUI:
         self.gaugeListBox       = None   # a Toplevel pop-up
         self.msgText            = None   # Tk.Text widget for gui messages
 
-        self.buttonStyle = ttk.Style() # Note that BAM.TButton is child class
-        self.buttonStyle.configure( 'BAM.TButton', font = constants.buttonFont )
-        self.checkButtonStyle = ttk.Style() 
-        self.checkButtonStyle.configure('BAM.TCheckbutton',
-                                         font = constants.textFont )
-        
         self.mapOptionMenu      = None # map plot variable selection
         self.plotOptionMenu     = None # timeseries plot variable selection
         self.startTimeEntry     = None # simulation start time
         self.endTimeEntry       = None # simulation end time
 
         self.plotVar_IntVars    = odict() # { plotVariable : Tk.IntVar() }
-        
+
         if not self.model.args.noGUI :
+            # ttk.Style() requires a live Tk root — only create in GUI mode.
+            self.buttonStyle = ttk.Style() # Note that BAM.TButton is child class
+            self.buttonStyle.configure( 'BAM.TButton', font = constants.buttonFont )
+            self.checkButtonStyle = ttk.Style()
+            self.checkButtonStyle.configure('BAM.TCheckbutton',
+                                             font = constants.textFont )
+
             # Set Tk-wide Font default for filedialog
             # But it doesn't set filedialog window or button fonts
-            #root.tk.call( "option", "add", "*Font", constants.textFont ) 
+            #root.tk.call( "option", "add", "*Font", constants.textFont )
             root.option_add( "*Font", constants.textFont )
 
             self.mapPlotVariable    = Tk.StringVar()
