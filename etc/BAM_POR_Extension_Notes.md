@@ -576,6 +576,98 @@ clean continuation through the post-Irma recession.
 
 ---
 
+## 9. Seasonal Mean Sea Level (MSL) Anomaly — `data/Tide/MSL_Anomaly.csv`
+
+### Background and root cause
+
+The BAM tidal boundary condition (`model.py → GetTides()`) adds a slowly-varying
+seasonal MSL anomaly to every tidal boundary basin water level at each timestep.
+The anomaly is read from `data/Tide/MSL_Anomaly.csv` and interpolated in time
+using a cubic spline (`scipy.interpolate.splrep / splev`, `s=0`).
+
+**Critical issue discovered 2026-05-28:** The original file ended 2017-09-15 (218
+data rows). When the model was run for dates in 2025, scipy's zero-smoothing cubic
+spline extrapolated wildly beyond the data domain, returning **+36,293 m** for
+2025-05-01. This value was added to every tidal boundary basin water level every
+timestep, creating a ~36,000 m head differential that drove exponential volume
+runaway (the V^(3/2) instability) in all 2025 runs. This was the true root cause
+of all 2025 model divergence — not the numerical fixes in `hydro.py`, which address
+a separate bathymetric floor clamping issue.
+
+### Original file
+
+`data/Tide/MSL_Anomaly.csv`
+- Format: `Date, Anomaly_m` (mid-month dates, 15th of each month)
+- 219 rows: 1999-09-15 through 2017-09-15
+- Values represent the departure of the 3-station mean NAVD88 MSL from the
+  2008–2015 epoch mean of −0.148 m NAVD88
+
+### Data source
+
+NOAA CO-OPS `monthly_mean` product via the Tides & Currents API:
+```
+https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?
+  product=monthly_mean&datum=NAVD&units=metric&time_zone=gmt
+  &format=json&station=<id>&begin_date=YYYYMM&end_date=YYYYMM
+```
+
+Three stations (same as original):
+
+| Station | Name | NOAA ID |
+|---|---|---|
+| Key West | Key West, FL | 8724580 |
+| Vaca Key | Vaca Key, FL | 8723970 |
+| Virginia Key | Virginia Key, FL | 8723214 |
+
+### Formula
+
+```
+MSL_NAVD_EPOCH = −0.148 m   (mean of all three stations, 2008–2015)
+
+Anomaly_m = mean(KW_MSL_NAVD88, VK_MSL_NAVD88, VirK_MSL_NAVD88) − (−0.148)
+           = mean(KW, VK, VirK) + 0.148
+```
+
+This matches the original computation documented in `BAM/etc/MSL_Plot.R` and
+the header of `BAM/etc/MonthlyMean_1999-9_2017-10.csv`.
+
+### Extension
+
+103 months appended: **2017-10-15 through 2026-04-15**
+
+- Fetched year-by-year from NOAA CO-OPS API for all three stations
+- One data gap: Vaca Key missing 2018-03; that month computed as 2-station mean
+  (Key West + Virginia Key)
+- Appended values range: **−0.153 to +0.272 m** — physically consistent
+  seasonal cycle (SLR trend visible, summer peaks ~+0.2 m, winter troughs ~−0.1 m)
+- Seam check: last existing row 2017-09-15 = +0.131 m; first new row 2017-10-15
+  = +0.160 m (Δ = +0.029 m) — smooth continuation
+
+### Extended file
+
+`data/Tide/MSL_Anomaly.csv`
+- 322 rows: 1999-09-15 through 2026-04-15
+- Same format as original: `Date, Anomaly_m`
+
+### Companion raw data file
+
+`etc/MonthlyMean_1999-9_2026-4-30.csv`
+- Columns: `Date, KeyWestMSL_NAVD, VacaKeyMSL_NAVD, VirginiaKeyMSL_NAVD,
+  MeanMSL_NAVD, Anomaly_m`
+- 322 rows covering full model POR
+- Extends `etc/MonthlyMean_1999-9_2017-10.csv` (original source data)
+
+### Script
+
+`BAM/etc/update_msl_data.py`  |  `--dry-run` flag for pre-write review
+
+Fetches NOAA CO-OPS `monthly_mean` (datum=NAVD, units=metric) for the three
+stations, year by year. Computes 3-station mean MSL_NAVD88, applies +0.148 m
+offset for anomaly. Appends only months beyond the current last date in
+`MSL_Anomaly.csv`. Also writes the companion `MonthlyMean_*` CSV.
+
+---
+
 ## Config Update (final step)
 
 After all data files are extended, update `config.py` (or equivalent BAM argument
