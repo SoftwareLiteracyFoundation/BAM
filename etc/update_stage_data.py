@@ -295,7 +295,7 @@ def main():
         print('  Re-run without --dry-run to write.')
     else:
         print('\n-- Step 7: Write output file ------------------------------------')
-        df_filled.to_csv(OUT_FILE, float_format='%.3f')
+        df_filled.to_csv(OUT_FILE, float_format='%.3f', na_rep='NA')
         kb = OUT_FILE.stat().st_size / 1024
         print(f'  Saved -> {OUT_FILE.name}  ({kb:.0f} KB, {len(df_filled)} rows)')
 
