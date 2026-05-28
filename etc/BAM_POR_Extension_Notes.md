@@ -441,11 +441,84 @@ Pre-existing NaN cells preserved: 3,578.
 
 ---
 
-## 7. Temperature — *(pending)*
+## 7. Temperature — `MaxTemp_Filled_1999-9-1_2026-4-30.csv`
 
+### Role in the model
+`MaxTemp` is the daily maximum **surface water temperature** (°C) used to amplify
+basin-level ET beyond the baseline PET via the Clausius-Clapeyron equation:
+
+```
+kinetic_ET_factor = max(1, exp((dH/R) × (1/T_ref − 1/T_max)))
+  dH = 44,000 J/mol  (enthalpy of vaporization at 300 K)
+  R  = 8.314 J/(mol·K)
+  T_ref = 15°C  (default reference temperature, command-line configurable)
+  T_max = MaxTemp (°C, daily maximum from this file)
+```
+
+This amplification is applied **only to 4 of 64 basins** (those with
+`ET Amplify = True` in `data/init/Basin_Parameters.csv`):
+Terrapin Bay (25), North Whipray (35), Rankin Lake (37), Snake Bight (41).
+All four are shallow, restricted-circulation interior basins prone to
+hypersalinity and elevated surface temperatures.
+
+At typical summer temperatures (29–33°C), the factor ranges from ~2.3×
+to ~2.8×. The factor is capped at a minimum of 1.0 so that cool
+temperatures never reduce ET below the PET baseline.
+
+### Original file
 `data/Temperature/MaxTemp_Filled_1999-9-1_2017-6-30.csv`
-Currently extends to 2017-06-30; needs update to 2026-04-30.
-Source: ENP/SFWMD network (TEF04 MySQL or NOAA GHCN).
+Single column (`MaxTemp`, °C), daily, 6,513 rows, no NaN.
+Created by `etc/SurfTemp.R` from 7 ENP/SFWMD station CSVs
+(`BK_SurfaceTemp.csv`, `GB_SurfaceTemp.csv`, `TC_SurfTemp.csv`, and others).
+
+### Data source
+TEF04 MySQL `hydrology` database, `datatype = 'bottom_temperature'`.
+Temperature sensors are co-located on the same multi-parameter probe as
+salinity, so coverage is equivalent to the salinity data (~99% per station).
+
+Primary station: **BK** (Bob Key)
+Fallback stations (regression to BK, derived from training period 1999–2016):
+
+| Fallback | Regression | R² |
+|---|---|---|
+| GB | `BK = 0.57196 + 0.99428 × GB` | — |
+| TC | `BK = 0.72327 + 1.00824 × TC` | — |
+
+Aggregation: daily **MAX** of sub-daily readings (consistent with the original
+`SurfTemp.R` method which used the `maximum.celsius.` column from raw CSVs).
+
+Sensor validity filter: `BETWEEN 0.0 AND 45.0` °C applied in SQL before MAX.
+Florida Bay surface water does not exceed ~40°C; 45°C excludes only clear
+sensor malfunctions.
+
+### Extension period
+`2017-07-01 – 2026-04-30` appended to the existing file.
+
+Note: the existing file ends 2017-06-30 (18 months after the main data
+end of 2016-12-31). This is because the original `SurfTemp.R` script was
+run later and captured additional real data through mid-2017.
+
+### Source hierarchy applied in extension
+1. BK direct: **3,223 days (99.9%)**
+2. GB regression: **3 days (0.1%)**
+3. TC regression: **0 days**
+4. Same-DOY gap-fill: **0 days required** (zero NaN after step 3)
+
+### Quality statistics
+| Period | Mean (°C) | Min (°C) | Max (°C) | NaN |
+|---|---|---|---|---|
+| 1999–2017 (existing) | 29.16 | 14.02 | 37.73 | 0 |
+| 2017–2026 (new) | 29.52 | 11.38 | 37.70 | 0 |
+
+Annual means 2017–2025: 29.2–29.8°C — consistent with the 1999–2016 mean
+of 29.2°C and well within the plausible range (18–35°C annual mean).
+The 2026 partial-year mean (27.0°C) reflects Jan–Apr only (no summer peak).
+
+Seam check (7-day window around 2017-07-01): before = 34.99°C,
+after = 34.61°C, delta = −0.38°C. Negligible.
+
+### Script
+`BAM/etc/update_temperature_data.py`  |  `--dry-run` and `--discover` flags
 
 ---
 
