@@ -21,7 +21,7 @@ from   tkinter import ttk # tk themed widgets within tkinter (tkinter.ttk)
 # Community modules
 from numpy import linspace, isnan
 from numpy import all as npall
-from numpy import NaN as npNaN
+from numpy import nan as npNaN
 
 from matplotlib.colors   import ListedColormap
 from matplotlib.colors   import BoundaryNorm
@@ -37,8 +37,15 @@ from matplotlib.pyplot import cm
 # Modules to embed matplotlib figure in a Tkinter window, see:
 # http://matplotlib.org/examples/user_interfaces/embedding_in_tk.html
 from matplotlib.figure import Figure
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.backends._backend_tk import NavigationToolbar2Tk
+try:
+    from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+    from matplotlib.backends._backend_tk import NavigationToolbar2Tk
+except ImportError:
+    # Headless server (no display / Pillow built without ImageTk).
+    # These are only used when the GUI is actually instantiated;
+    # running with -ng (noGUI) never reaches that code path.
+    FigureCanvasTkAgg = None
+    NavigationToolbar2Tk = None
 
 # Local modules 
 from init import InitTimeBasins
@@ -69,23 +76,24 @@ class GUI:
         self.gaugeListBox       = None   # a Toplevel pop-up
         self.msgText            = None   # Tk.Text widget for gui messages
 
-        self.buttonStyle = ttk.Style() # Note that BAM.TButton is child class
-        self.buttonStyle.configure( 'BAM.TButton', font = constants.buttonFont )
-        self.checkButtonStyle = ttk.Style() 
-        self.checkButtonStyle.configure('BAM.TCheckbutton',
-                                         font = constants.textFont )
-        
         self.mapOptionMenu      = None # map plot variable selection
         self.plotOptionMenu     = None # timeseries plot variable selection
         self.startTimeEntry     = None # simulation start time
         self.endTimeEntry       = None # simulation end time
 
         self.plotVar_IntVars    = odict() # { plotVariable : Tk.IntVar() }
-        
+
         if not self.model.args.noGUI :
+            # ttk.Style() requires a live Tk root — only create in GUI mode.
+            self.buttonStyle = ttk.Style() # Note that BAM.TButton is child class
+            self.buttonStyle.configure( 'BAM.TButton', font = constants.buttonFont )
+            self.checkButtonStyle = ttk.Style()
+            self.checkButtonStyle.configure('BAM.TCheckbutton',
+                                             font = constants.textFont )
+
             # Set Tk-wide Font default for filedialog
             # But it doesn't set filedialog window or button fonts
-            #root.tk.call( "option", "add", "*Font", constants.textFont ) 
+            #root.tk.call( "option", "add", "*Font", constants.textFont )
             root.option_add( "*Font", constants.textFont )
 
             self.mapPlotVariable    = Tk.StringVar()
@@ -423,7 +431,10 @@ class GUI:
             self.msgText.insert( Tk.END, msg )
             self.msgText.see   ( Tk.END )
         else :
-            print( msg, end = '' )
+            try:
+                print( msg, end = '' )
+            except UnicodeEncodeError:
+                print( msg.encode( 'ascii', 'replace' ).decode( 'ascii' ), end = '' )
 
         self.model.run_info.append( msg )
 
