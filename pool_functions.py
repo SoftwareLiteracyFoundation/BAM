@@ -2,7 +2,6 @@
    Model (BAM)'''
 
 # Python distribution modules
-from os.path  import join as path_join
 from datetime import datetime
 strptime = datetime.strptime
 
@@ -52,7 +51,7 @@ def ReadTideBoundaryData( args ) :
     # 1990-01-01 12:00 AM EST, -0.086
     # 1990-01-01 1:00 AM EST, 0.166
     try:
-        fd = open( path_join(path, data_file), 'r' )
+        fd = open( path + data_file, 'r' )
     except OSError as err :
         msg = "ReadTideBoundaryData() OS error: {0}\n".format( err )
         print( msg, flush = True )
@@ -71,7 +70,10 @@ def ReadTideBoundaryData( args ) :
         row   = rows[ i ]
         words = row.split(',')
 
-        date_time = strptime( words[ 0 ], '%Y-%m-%d %I:%M %p %Z' ) 
+        # Strip trailing timezone abbreviation (e.g. "EDT", "EST") — %Z is
+        # unreliable on Windows; the tz offset is unused by the model anyway.
+        dt_str = ' '.join( words[ 0 ].split()[:3] )
+        date_time = strptime( dt_str, '%Y-%m-%d %I:%M %p' )
         datetimes.append( date_time )
         times.append( (date_time - datetime(1970, 1, 1) ).total_seconds() )
 

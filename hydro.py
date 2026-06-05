@@ -1,7 +1,7 @@
 '''Hydraulic functions for the Bay Assessment Model (BAM)'''
 
 # Python distribution modules
-from math import sqrt, pow
+from math import sqrt, pow, copysign, isfinite
 
 # Local modules
 import constants
@@ -139,9 +139,18 @@ def ShoalVelocities( model ) :
                 msg = '\n*** Mannings: iterations exceeded for shoal ' +\
                     str( shoal_number ) + ' at depth ' + str( depth_ft ) + '\n'
                 model.gui.Message( msg )
+                Shoal.velocity[ depth_ft ] = 0  # Prevent overflow cascade from unconverged velocity
+
+            # Physical velocity cap: Florida Bay currents never exceed ~5 m/s.
+            # Guards against exponential volume runaway when level differences
+            # grow large due to numerical overshoot.
+            velocity = Shoal.velocity[ depth_ft ]
+            if not isfinite( velocity ) or abs( velocity ) > 5.0 :
+                Shoal.velocity[ depth_ft ] = copysign( 5.0, velocity ) \
+                                             if isfinite( velocity ) else 0.0
 
         # Set flag that this shoal has been initialized
-        Shoal.initial_velocity = True 
+        Shoal.initial_velocity = True
 
 #---------------------------------------------------------------
 # 
@@ -402,17 +411,53 @@ def Depths( model ) :
     '''Update basin depths from volume changes.'''
 
     for Basin in model.Basins.values() :
-        
-        if not Basin.area : # Boundary basins have no area
+
+        if not Basin.area :  # Boundary basins or stale-zero from a prior clamp
+            if Basin.wet_area :
+                # Non-boundary basin with stale area=0: reset water_level to
+                # floor and recompute area so the normal path runs next timestep.
+                # Do NOT zero water_volume — MassTransport's own zero-clamp
+                # (lines 311-314) is authoritative for volume; overriding a
+                # positive volume here would cause MassTransport's salt-skip
+                # guard to fire and break salt conservation.
+                min_depth_ft      = min( Basin.wet_area.keys() )
+                Basin.water_level = -( min_depth_ft * 0.3048 )
+                Basin.Area()       # now returns positive area at floor
+            Basin.previous_volume = Basin.water_volume
             continue
 
         Basin.Area() # Update area at current water levels
+
+        if not Basin.area :  # Water level dropped below all depth bins
+            if Basin.wet_area :
+                # Clamp water_level to floor; do NOT zero water_volume (see above).
+                min_depth_ft      = min( Basin.wet_area.keys() )
+                Basin.water_level = -( min_depth_ft * 0.3048 )
+                Basin.Area()
+            Basin.previous_volume = Basin.water_volume
+            continue
 
         volume_difference = Basin.water_volume - Basin.previous_volume
 
         h_difference = volume_difference / Basin.area
 
         Basin.water_level += h_difference
+
+        # Clamp water_level to the bathymetric floor.
+        # The h_diff = dV/A formula is a first-order area approximation; for
+        # large volume changes it can overshoot below the bathymetric floor.
+        # Correct the geometry (water_level) but do NOT zero water_volume —
+        # if MassTransport left a positive volume, zeroing it here would
+        # trigger MassTransport's salt-skip guard next timestep and cause
+        # progressive salinity loss over multi-year runs.
+        # The minor volume/level inconsistency at floor self-corrects within
+        # a few timesteps via tidal inflow.
+        if Basin.wet_area :
+            min_depth_ft = min( Basin.wet_area.keys() )
+            floor_level  = -( min_depth_ft * 0.3048 )
+            if Basin.water_level < floor_level :
+                Basin.water_level = floor_level
+                Basin.Area()       # update area at floor_level for next timestep
 
         # Update previous_volume for next iteration
         Basin.previous_volume = Basin.water_volume
