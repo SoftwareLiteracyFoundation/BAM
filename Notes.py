@@ -4,10 +4,6 @@
 #------------------------------------------------------------------
 def Versions() :
     '''
-    Version 1.4.2 2025-9-15
-      Replace numpy.NaN alias with numpy.nan
-      Use os.path.join (path_join) to accomodate Windows path
-
     Version 1.4.1 2020-8-4
       Update to Matplotlib 3.1.
       canvas.draw() cannot be called from thread outside Tk mainloop. 
@@ -80,6 +76,31 @@ def ToDo() :
       Replace shoal hydro dictionaries with explicitly indexed numpy arrays?
       Replace numeric lists with pre-allocated numpy arrays?
       Add Help (Notes.py __doc__ etc...)
+
+      -------------------------------------------------------------
+      SALT BUDGET AT COASTAL BOUNDARY BASINS (future work)
+      Added: 2026-05-29  E. Stabenau / Everglades Foundation
+      -------------------------------------------------------------
+      Basins Conchie Channel (42), Sandy Key (58), and Ninemile Bank (43)
+      are the only interior basins directly connected to Gulf tidal boundary
+      conditions (Gulf Tide 1/2/3 driven by Cape Sable, Region 2, Region 3
+      tidal stations).  These basins show salinity spikes throughout the
+      period of record.  The mechanism and the correct physics are documented
+      in etc/BAM_Known_Issues.md.
+
+      Key principle from E. Stabenau:
+        "Salinity should not increase when water flows out of the coastal
+         basin toward the coast, exiting the model grid.  Salt budget is
+         important but the model should match the physics."
+
+      Specific code location: hydro.MassTransport(), lines 311-316.
+      When Basin_A.water_volume is clamped to 0 (overdrain by the shoal
+      loop), the 'continue' guard skips salt removal.  The basin ends up
+      with zero water volume but non-zero salt_mass.  On flood-tide refill
+      this orphaned salt concentrates in the incoming volume, producing
+      the spike.  Fix: when water_volume is clamped to 0, also zero
+      salt_mass (or reduce it proportionally to the actual water transferred).
+      See etc/BAM_Known_Issues.md for full analysis.
     '''
     pass
 
